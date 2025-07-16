@@ -1,20 +1,31 @@
+import { ExerciseSet } from "@/types";
 import { StyleSheet, Text, View } from "react-native";
+import Checkbox from "./Checkbox";
 type Prop = {
-    number: number; 
-    previous: string; 
-    weight: number;
-    reps: number; 
+    parentKey: number; 
+    // key: number; 
+    set: ExerciseSet
     highlight?: boolean;
 }
-
-export default function Set({ number, previous, weight, reps, highlight }: Prop)  { 
+export default function Set({parentKey, set }: Prop)  { 
+    const previous = null; 
     return (
-        <View style={[styles.setContainer, highlight && styles.highlight]}>
-            <View style={[styles.setNumberContainer]}><Text style={styles.setText}>{number}</Text></View>
-            <View style={[styles.previousContainer]}><Text style={styles.setText}>{previous == "" ? "-" : previous}</Text></View>
-            <View style={[styles.repContainer]}><Text style={styles.setText}>{reps}</Text></View>
-            <View style={[styles.weightContainer]}><Text style={styles.setText}>{weight}</Text></View>
-            <View style={[styles.hContainer]}></View>
+        <View style={{backgroundColor: set.completed ? "rgba(46, 205, 112, 0.33)" : undefined}}>
+            <View style={[styles.setContainer, set.completed && styles.highlight]}>
+                <View style={[set.completed ? styles.setCompletedNumberContainer : styles.setNumberContainer]}><Text style={styles.setText}>{set.key+1}</Text></View>
+                <View style={[styles.previousContainer]}><Text style={styles.setText}>{previous == "" ? "-" : previous}</Text></View>
+                <View style={[styles.repContainer]}>
+                    <Text style={styles.setText}>
+                        {set.rep}
+                    </Text>
+                </View>
+                <View style={[styles.weightContainer]}>
+                    <Text style={styles.setText}>
+                        {set.weight}
+                    </Text>
+                </View>
+                <View style={[styles.hContainer]}><Checkbox parentKey={parentKey} keyNumber={set.key}/></View>
+            </View>
         </View>
     );
 }
@@ -23,9 +34,13 @@ const styles = StyleSheet.create({
     setContainer: {
         flexDirection: "row",
         justifyContent: "space-between",
-        paddingVertical: 8,
+        paddingVertical: 6,
         borderRadius: 8,
-        marginBottom: 4,
+        // marginBottom: 4,
+        paddingHorizontal: 20,
+        alignItems: 'center',
+        width: "100%"
+        
     },
     setNumberContainer: { 
         width: "10%",
@@ -33,6 +48,12 @@ const styles = StyleSheet.create({
         alignItems: "center",
         backgroundColor: "#222",
         borderRadius: 8,
+        paddingVertical: 4,
+    },
+    setCompletedNumberContainer: { 
+        width: "10%", 
+        justifyContent: "center", 
+        alignItems: "center",
         paddingVertical: 4,
     },
     previousContainer: { 
@@ -52,13 +73,17 @@ const styles = StyleSheet.create({
     },
     hContainer: {
         width: "10%",
+        height: 30, 
+        alignItems: 'center', 
+        justifyContent: 'center',
     },
     highlight: { 
-        backgroundColor: "#34A6FB",
+        // backgroundColor:"rgba(46, 205, 112, 0.33)",
     },
     setText: {
         color: "white",
         fontSize: 16,
         textAlign: "center",
+        fontWeight: "bold"
     },
 });

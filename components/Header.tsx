@@ -50,6 +50,7 @@ const styles = StyleSheet.create({
         // backgroundColor: "#222",
         flexDirection: "column",
         alignItems: "flex-start",
+        paddingHorizontal: 20,
         gap: 8,
         // backgroundColor: "red",
     },

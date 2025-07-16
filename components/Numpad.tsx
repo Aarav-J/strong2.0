@@ -1,24 +1,32 @@
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 // import { PropsWithChildren } from 'react';
+import { useStore } from '@/store';
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 type Props = { 
-    visible: boolean; 
-    onClose: () => void; 
+    handlePressKey: (digit: string) => void  
+    handlePressDelete: () => void
+    // onClose: () => void; 
 }
 
-export default function Numpad({ visible, onClose }: Props) {
+export default function Numpad({handlePressKey, handlePressDelete}: Props) {
+    const numpadVisible = useStore((state) => state.numpadVisible)
+    const setNumpadVisible = useStore((state) => state.setNumpadVisible)
+    const onClose = () => { 
+        setNumpadVisible(false)
+    }
     return ( 
         <View>
-            <Modal animationType='slide' transparent={true} visible={visible} onRequestClose={onClose}>
+            <Modal animationType='slide' 
+            transparent={true} visible={numpadVisible} onRequestClose={onClose}>
                 <View style={styles.modalContainer}>
                     <View style={styles.numpadContainer}>
-                        <TouchableOpacity style={styles.numpadNumber}>
+                        <TouchableOpacity style={styles.numpadNumber} onPress={() => handlePressKey('1')}>
                             <Text style={styles.buttonText}>1</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.numpadNumber}>
+                        <TouchableOpacity style={styles.numpadNumber} onPress={() => handlePressKey('2')}>
                             <Text style={styles.buttonText}>2</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.numpadNumber}>
+                        <TouchableOpacity style={styles.numpadNumber} onPress={() => handlePressKey('3')}>
                             <Text style={styles.buttonText}>3</Text>
                         </TouchableOpacity>
                          <Pressable style={({pressed}) => [
@@ -27,13 +35,13 @@ export default function Numpad({ visible, onClose }: Props) {
                             ]}>
                             <MaterialIcons name="keyboard-hide" size={18} color="white" />
                         </Pressable>
-                        <TouchableOpacity style={styles.numpadNumber}>
+                        <TouchableOpacity style={styles.numpadNumber} onPress={() => handlePressKey('4')}>
                             <Text style={styles.buttonText}>4</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.numpadNumber}>
+                        <TouchableOpacity style={styles.numpadNumber} onPress={() => handlePressKey('5')}>
                             <Text style={styles.buttonText}>5</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.numpadNumber}>
+                        <TouchableOpacity style={styles.numpadNumber} onPress={() => handlePressKey('6')}>
                             <Text style={styles.buttonText}>6</Text>
                         </TouchableOpacity>
                         <Pressable style={({pressed}) => [
@@ -42,14 +50,14 @@ export default function Numpad({ visible, onClose }: Props) {
                             ]} onPress={() => onClose()}>
                             <Ionicons name="barbell-sharp" size={18} color="white" />
                         </Pressable>
-                        <TouchableOpacity style={styles.numpadNumber}>
+                        <TouchableOpacity style={styles.numpadNumber} onPress={() => handlePressKey('7')}>
                             <Text style={styles.buttonText}>7</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.numpadNumber}>
+                        <TouchableOpacity style={styles.numpadNumber} onPress={() => handlePressKey('8')}>
                             <Text style={styles.buttonText}>8</Text>   
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.numpadNumber}>
+                        <TouchableOpacity style={styles.numpadNumber} onPress={() => handlePressKey('9')}>
                             <Text style={styles.buttonText}>9</Text>
                         </TouchableOpacity>
                         <View style={styles.plusMinusContainer}>
@@ -61,13 +69,13 @@ export default function Numpad({ visible, onClose }: Props) {
                             </Pressable>
 
                          </View>
-                        <TouchableOpacity style={styles.numpadNumber}>
+                        <TouchableOpacity style={styles.numpadNumber} onPress={() => handlePressKey('.')}>
                             <Text style={styles.buttonText}>.</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.numpadNumber}>
+                        <TouchableOpacity style={styles.numpadNumber} onPress={() => handlePressKey('0')}>
                             <Text style={styles.buttonText}>0</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.numpadNumber}>
+                        <TouchableOpacity style={styles.numpadNumber} onPress={handlePressDelete}>
                             <Feather name="delete" size={18} color="white" />
                         </TouchableOpacity>
                          <Pressable style={({pressed}) => [styles.numpadButton, styles.actionButton, pressed && styles.numpadButtonPressed]} onPress={() => onClose()}>

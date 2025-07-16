@@ -1,9 +1,13 @@
+import { useStore } from "@/store";
+import { ExerciseSet } from "@/types";
+import { compareArrays } from "@/utils/utils";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 type Props = { 
-    active: boolean; 
-    duration: number;   
+    set: ExerciseSet 
+    parentKey: number, 
+    // key: number, 
 }
 
 const formatTime = (seconds: number) => {
@@ -11,14 +15,33 @@ const formatTime = (seconds: number) => {
     const secs = seconds % 60;
     return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
 }
-export default function Rest({active, duration}: Props) {
+export default function Rest({set, parentKey}: Props) {
+    const [completed, setCompleted] = useState(false)
+    // const [active, setActive] = useState(true)
+    const workoutDetails = useStore((state) => state.workoutDetails)
+    const activeSet = useStore((state) => state.activeSet)
+    const setNext = useStore((state) => state.setNext)
+    const setCompletedElement = useStore((state) => state.setCompletedElement)
     const width = useSharedValue(1); // 1 means 100%
-   
-    const [remainingTime, setRemainingTime] = useState(duration);
+//    useEffect(() => { 
+
+//    }, [workoutDetails[parentKey].sets[key].duration])
+    const duration = set.rest.duration
+    
+    const [remainingTime, setRemainingTime] = useState(duration)
+        
+        
+    // Or, if you are confident and want to avoid the cast:
+    // const [remainingTime, setRemainingTime] = useState(set.duration);
+    // If you want to be extra safe, you could throw if duration is missing:
+    // if (typeof set.duration !== "number") throw new Error("Rest component requires set with duration");
+      useEffect(() => { 
+        setCompleted(set.rest.completed)
+    }, [set.rest.completed])
 
     useEffect(() => { 
         let timer: ReturnType<typeof setInterval>;
-        if (active) {
+        if (compareArrays(activeSet, [parentKey, set.key, 1])) {
             setRemainingTime(duration);
             width.value = 1; // reset width to full when activated
             width.value = withTiming(0, { 
@@ -27,7 +50,7 @@ export default function Rest({active, duration}: Props) {
             });
             timer = setInterval(() => {
                 setRemainingTime((prev) => {
-                    if(prev <= 0) { 
+                    if (prev <= 1) {
                         return 0;
                     }
                     return prev - 1;
@@ -35,24 +58,43 @@ export default function Rest({active, duration}: Props) {
             }, 1000);
         }
         return () => clearInterval(timer);
-    }, [active, duration, width]);
+    }, [activeSet,duration, width]);
 
+    // NEW: handle completion as a side effect
+    useEffect(() => {
+        if (
+            compareArrays(activeSet, [parentKey, set.key, 1]) &&
+            remainingTime === 0 &&
+            !completed
+        ) {
+            setCompletedElement([parentKey, set.key, 1]);
+            setNext()
+            setRemainingTime(duration)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [remainingTime, activeSet, completed]);
     const animatedStyle = useAnimatedStyle(() => ({
         width: `${width.value * 100}%`,
     }));
 
-    return (active ? (
-        <View style={styles.activeContainer}>
-            <Animated.View style={[styles.timerContainer, animatedStyle]}></Animated.View>
-            <Text style={styles.activeText}>{formatTime(remainingTime)}</Text>
-        </View>
-    ) :  (
-        <View style={styles.inactiveContainer}>
-            <View style ={styles.blueLine}></View>
-            <Text style={styles.inactiveText}>{formatTime(remainingTime)}</Text>
-            <View style ={styles.blueLine}></View>
-        </View>
-    ))
+    return (
+        <View style={[completed ? styles.completedContainer : null]}>
+            <View style={{paddingHorizontal: 20}}>
+            {compareArrays(activeSet, [parentKey, set.key, 1]) ? (
+                <View style={styles.activeContainer}>
+                <Animated.View style={[styles.timerContainer, animatedStyle]}></Animated.View>
+                <Text style={styles.activeText}>{formatTime(remainingTime)}</Text>
+            </View>
+            ) :  (
+            <View style={styles.inactiveContainer}>
+                <View style ={completed ? styles.greenLine : styles.blueLine}></View>
+                <Text style={[styles.inactiveText, completed && styles.greenText]}>{formatTime(duration)}</Text>
+                <View style ={completed ? styles.greenLine : styles.blueLine}></View>
+            </View> 
+        )}
+            </View>
+            </View>
+    )
 }
 
 
@@ -70,7 +112,13 @@ const styles = StyleSheet.create({
         width: "100%",
         height: 40,
         zIndex: 1,
+        marginTop: 4,
+        marginBottom: 4,
+        // paddingHorizontal: 30, 
         // backgroundSize: ""
+    },
+    completedContainer: { 
+        backgroundColor: 'rgba(46, 205, 112, 0.33)',
     },
     timerContainer: { 
         width: "100%", 
@@ -91,21 +139,31 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
     },
     blueLine: { 
-        
+        borderRadius: 8,
         height: "20%",
-        width: "40%",
+        width: "43%",
         backgroundColor: "#2D5472",
         // marginHorizontal: 8,
+    },
+    greenLine: { 
+        borderRadius: 8,
+        height: "20%", 
+        width: "43%", 
+        backgroundColor: "#2ECD70"
     },
     inactiveContainer: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
         paddingVertical: 8,
+        // paddingHorizontal: 30, 
     },
     inactiveText: {
         color: "#34A6FB",
         fontSize: 16,
-        // fontWeight: "bold"
+        fontWeight: "bold"
     },
+    greenText: { 
+        color: '#2ECD70'
+    }
 });

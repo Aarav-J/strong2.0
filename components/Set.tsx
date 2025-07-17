@@ -1,6 +1,7 @@
 import { ExerciseSet } from "@/types";
 import { StyleSheet, Text, View } from "react-native";
 import Checkbox from "./Checkbox";
+import NumpadInput from "./NumpadInput";
 type Prop = {
     parentKey: number; 
     // key: number; 
@@ -15,9 +16,10 @@ export default function Set({parentKey, set }: Prop)  {
                 <View style={[set.completed ? styles.setCompletedNumberContainer : styles.setNumberContainer]}><Text style={styles.setText}>{set.key+1}</Text></View>
                 <View style={[styles.previousContainer]}><Text style={styles.setText}>{previous == "" ? "-" : previous}</Text></View>
                 <View style={[styles.repContainer]}>
-                    <Text style={styles.setText}>
-                        {set.rep}
-                    </Text>
+                    <NumpadInput value={set.rep.toString()}
+                    onChangeText={(text) => {
+                        const num = parseInt(text) || 0;
+                    }}/>
                 </View>
                 <View style={[styles.weightContainer]}>
                     <Text style={styles.setText}>

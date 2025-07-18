@@ -16,10 +16,15 @@ export default function Set({parentKey, set }: Prop)  {
                 <View style={[set.completed ? styles.setCompletedNumberContainer : styles.setNumberContainer]}><Text style={styles.setText}>{set.key+1}</Text></View>
                 <View style={[styles.previousContainer]}><Text style={styles.setText}>{previous == "" ? "-" : previous}</Text></View>
                 <View style={[styles.repContainer]}>
-                    <NumpadInput value={set.rep.toString()}
-                    onChangeText={(text) => {
+                    <NumpadInput 
+                        value={set.rep.toString()}
+                        onChangeText={(text) => {
                         const num = parseInt(text) || 0;
-                    }}/>
+                        // Add your store update logic here
+                        console.log('New value:', num);
+                        }} 
+                        inputId={`set-${parentKey}-${set.key}-rep`}
+                    />
                 </View>
                 <View style={[styles.weightContainer]}>
                     <Text style={styles.setText}>

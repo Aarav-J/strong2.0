@@ -1,6 +1,7 @@
 import Button from "@/components/Button";
 import Exercise from "@/components/Exercise";
 import Header from "@/components/Header";
+import Numpad from "@/components/Numpad";
 import { useStore } from "@/store";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
@@ -28,6 +29,9 @@ export default function Index() {
           />
         </View>
       </View>
+      <Numpad 
+        handlePressKey={(digit: string) => console.log(`Pressed ${digit}`)} 
+        handlePressDelete={() => console.log('Delete pressed')}/>
     </View>
   );
 }

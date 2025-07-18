@@ -1,4 +1,4 @@
-import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 // import { PropsWithChildren } from 'react';
 import { useStore } from '@/store';
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
@@ -9,15 +9,18 @@ type Props = {
 }
 
 export default function Numpad({handlePressKey, handlePressDelete}: Props) {
-    const numpadVisible = useStore((state) => state.numpadVisible)
-    const setNumpadVisible = useStore((state) => state.setNumpadVisible)
+    const numpadVisible = useStore((state) => state.numpadVisible);
+    const activeInputId = useStore((state) => state.activeInputId);
+    const setNumpadVisible = useStore((state) => state.setNumpadVisible);
+    const setActiveInputId = useStore((state) => state.setActiveInputId);
+
+    if(!activeInputId && !numpadVisible) return null;
+
     const onClose = () => { 
-        setNumpadVisible(false)
+        setNumpadVisible(false);
+        setActiveInputId(null);
     }
     return ( 
-        <View>
-            <Modal animationType='slide' 
-            transparent={true} visible={numpadVisible} onRequestClose={onClose}>
                 <View style={styles.modalContainer}>
                     <View style={styles.numpadContainer}>
                         <TouchableOpacity style={styles.numpadNumber} onPress={() => handlePressKey('1')}>
@@ -104,14 +107,12 @@ export default function Numpad({handlePressKey, handlePressDelete}: Props) {
                         </Pressable>
                     </View> */}
                 </View>
-            </Modal>
-        </View>
     )
 }
 
 const styles = StyleSheet.create({
     modalContainer: {
-        flex: 1,
+        // flex: 1,
         width: '100%',
         height: '33%',
         justifyContent: 'center',

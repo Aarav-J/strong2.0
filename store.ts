@@ -14,6 +14,8 @@ type StoreState = {
     addSet: (key: number) => void; 
     numpadVisible: boolean;
     setNumpadVisible: (val: boolean) => void;
+    activeInputId?: string | null; 
+    setActiveInputId: (id: string | null) => void;
 };
 
 export const useStore = create<StoreState>((set) => ({
@@ -75,5 +77,7 @@ export const useStore = create<StoreState>((set) => ({
         return {workoutDetails: tempDetails}
     }), 
     numpadVisible: false, 
-    setNumpadVisible: (val: boolean) => set((state) => ({numpadVisible: val}))
-}));
+    setNumpadVisible: (val: boolean) => set((state) => ({numpadVisible: val})), 
+    activeInputId: null,
+    setActiveInputId: (id: string | null) => set((state) => ({activeInputId: id})),
+}))

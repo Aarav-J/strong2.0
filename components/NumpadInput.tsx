@@ -17,7 +17,9 @@ export default function NumpadInput({ value, onChangeText, inputId }: Props) {
   const activeInputId = useStore((state) => state.activeInputId);
   const setActiveInputId = useStore((state) => state.setActiveInputId);
   const currentSelection = useStore((state) => state.currentSelection);
-
+  const exerciseKey = inputId?.split('-')[1]; // Default to '0' if exerciseKey is undefined
+  const setKey = inputId?.split('-')[2]; // Default to '0' if setKey is undefined
+  const workoutDetails = useStore((state) => state.workoutDetails);
   const isActive = activeInputId === inputId;
 
   // Only sync FROM store TO local when store selection changes and it's different
@@ -66,7 +68,8 @@ export default function NumpadInput({ value, onChangeText, inputId }: Props) {
       showSoftInputOnFocus={false}
       style={[
         styles.input,
-        isActive && styles.activeInput
+        isActive && styles.activeInput,
+        workoutDetails[parseInt(exerciseKey)]?.sets[parseInt(setKey)]?.completed && styles.completedInput
       ]}
       caretHidden={false}
       selectionColor="#34A6FB"
@@ -92,5 +95,14 @@ const styles = StyleSheet.create({
   },
   activeInput: {
     borderColor: '#34A6FB',
+  }, 
+  completedInput: { 
+    backgroundColor: 'transparent',
+    color: "white",
+    fontSize: 16,
+    // textAlign: "center",
+    fontWeight: "bold", 
+    borderColor: 'transparent',
   }
+   
 });

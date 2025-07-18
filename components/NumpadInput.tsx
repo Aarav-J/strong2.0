@@ -10,66 +10,52 @@ type Props = {
 
 export default function NumpadInput({ value, onChangeText, inputId }: Props) {
   const inputRef = useRef<TextInput>(null);
-  const [localValue, setLocalValue] = useState(value);
   const [selection, setSelection] = useState({ start: value.length, end: value.length });
   
   const numpadVisible = useStore((state) => state.numpadVisible);
   const setNumpadVisible = useStore((state) => state.setNumpadVisible);
   const activeInputId = useStore((state) => state.activeInputId);
   const setActiveInputId = useStore((state) => state.setActiveInputId);
+  const currentSelection = useStore((state) => state.currentSelection);
 
   const isActive = activeInputId === inputId;
 
-  // Update local value when prop changes
+  // Only sync FROM store TO local when store selection changes and it's different
   useEffect(() => {
-    setLocalValue(value);
-  }, [value]);
-
-  // Update parent when local value changes
-  useEffect(() => {
-    if (isActive) {
-      onChangeText(localValue);
+    if (isActive && currentSelection && 
+        (currentSelection.start !== selection.start || currentSelection.end !== selection.end)) {
+      setSelection(currentSelection);
     }
-  }, [localValue, isActive]);
+  }, [currentSelection, isActive]); // Remove selection from dependencies
 
-  const handleKeyPress = (key: string) => {
-    if (!isActive) return;
-    
-    const newText = localValue.slice(0, selection.start) + key + localValue.slice(selection.end);
-    const newCursor = selection.start + 1;
-    
-    setLocalValue(newText);
-    setSelection({ start: newCursor, end: newCursor });
-  };
-
-  const handleDelete = () => {
-    if (!isActive || selection.start === 0) return;
-    
-    const newText = localValue.slice(0, selection.start - 1) + localValue.slice(selection.end);
-    const newCursor = selection.start - 1;
-    
-    setLocalValue(newText);
-    setSelection({ start: newCursor, end: newCursor });
+  // Only update store when user manually changes selection (not from numpad)
+  const updateStoreSelection = (newSelection: { start: number, end: number }) => {
+    if (isActive) {
+      useStore.setState({ currentSelection: newSelection });
+    }
   };
 
   return (
     <TextInput
       ref={inputRef}
-      value={localValue}
+      value={value}
       selection={isActive ? selection : undefined}
       onSelectionChange={({ nativeEvent: { selection } }) => {
         if (isActive) {
+
           setSelection(selection);
-          console.log(`Selection changed: ${JSON.stringify(selection)}`);
+          // Update store selection directly here instead of in useEffect
+          updateStoreSelection(selection);
+          console.log(selection)
         }
       }}
       onFocus={() => {
         setActiveInputId(inputId);
         setNumpadVisible(true);
-        console.log(inputId)
-        // Move cursor to end on focus
-        // const pos = localValue.length;
-        setSelection({ start: 0, end: 0 });
+        const pos = value.length;
+        const newSelection = { start: pos, end: pos };
+        setSelection(newSelection);
+        updateStoreSelection(newSelection);
       }}
       showSoftInputOnFocus={false}
       style={[

@@ -16,9 +16,13 @@ type StoreState = {
     setNumpadVisible: (val: boolean) => void;
     activeInputId?: string | null; 
     setActiveInputId: (id: string | null) => void;
+    updateInputValue: (inputId: string, value: string) => void;
+    handleNumpadKeyPress: (key: string, selection: { start: number, end: number }) => { newValue: string, newCursor: number } | null;
+    handleNumpadDelete: (selection: { start: number, end: number }) => { newValue: string, newCursor: number } | null;
+    currentSelection: { start: number, end: number };
 };
 
-export const useStore = create<StoreState>((set) => ({
+export const useStore = create<StoreState>((set, get) => ({
     workoutDetails: [
         {
             key: 0,
@@ -80,4 +84,92 @@ export const useStore = create<StoreState>((set) => ({
     setNumpadVisible: (val: boolean) => set((state) => ({numpadVisible: val})), 
     activeInputId: null,
     setActiveInputId: (id: string | null) => set((state) => ({activeInputId: id})),
+    updateInputValue: (inputId, value) => 
+        set((state) => { 
+            const parts = inputId.split('-'); 
+            if(parts.length === 4 && parts[0] === 'set') { 
+                const parentKey = parseInt(parts[1]);
+                const setKey = parseInt(parts[2]);
+                const field = parts[3];
+
+                const newWorkoutDetails = [...state.workoutDetails];
+                if(newWorkoutDetails[parentKey]?.sets[setKey]) { 
+                    if(field === 'rep') { 
+                        newWorkoutDetails[parentKey].sets[setKey].rep = parseInt(value) || 0;
+                    } else if (field === 'weight') { 
+                        newWorkoutDetails[parentKey].sets[setKey].weight = parseFloat(value) || 0;
+                    }
+                }
+                return {workoutDetails: newWorkoutDetails}
+            }
+            return state; 
+        }),
+    handleNumpadKeyPress: (key, selection) => {
+        const state = get();
+        const { activeInputId } = state;
+        if (!activeInputId) return null;
+
+        const parts = activeInputId.split('-');
+        if (parts.length === 4 && parts[0] === 'set') {
+        const parentKey = parseInt(parts[1]);
+        const setKey = parseInt(parts[2]);
+        const field = parts[3];
+        
+        const currentSet = state.workoutDetails[parentKey]?.sets[setKey];
+        if (!currentSet) return null;
+
+        const currentValue = field === 'rep' ? currentSet.rep.toString() : currentSet.weight.toString();
+        
+        // Insert key at selection position
+        const newValue = currentValue.slice(0, selection.start) + key + currentValue.slice(selection.end);
+        const newCursor = selection.start + 1;
+        
+        // Update the store
+        state.updateInputValue(activeInputId, newValue);
+        
+        return { newValue, newCursor };
+        }
+        return null;
+    },
+    
+    handleNumpadDelete: (selection) => {
+        const state = get();
+        const { activeInputId } = state;
+        if (!activeInputId || selection.start === 0 && selection.end === 0) return null;
+
+        const parts = activeInputId.split('-');
+        if (parts.length === 4 && parts[0] === 'set') {
+        const parentKey = parseInt(parts[1]);
+        const setKey = parseInt(parts[2]);
+        const field = parts[3];
+        
+        const currentSet = state.workoutDetails[parentKey]?.sets[setKey];
+        if (!currentSet) return null;
+
+        const currentValue = field === 'rep' ? currentSet.rep.toString() : currentSet.weight.toString();
+        
+        let newValue;
+        let newCursor;
+        
+        if (selection.start !== selection.end) {
+            console.log(selection); 
+            // Delete selected text
+            newValue = currentValue.slice(0, selection.start) + currentValue.slice(selection.end);
+            newCursor = selection.start;
+            console.log("new thingy", newValue)
+        } else {
+            // Delete character before cursor
+            newValue = currentValue.slice(0, selection.start - 1) + currentValue.slice(selection.start);
+            newCursor = selection.start - 1;
+        }
+        
+        // Update the store
+        state.updateInputValue(activeInputId, newValue);
+        
+        return { newValue, newCursor };
+        }
+        return null;
+    },
+    currentSelection: { start: 0, end: 0 },
 }))
+

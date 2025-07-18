@@ -79,11 +79,15 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: '#888',
-    padding: 12,
+    // paddingHorizontal: 20,
+    paddingVertical: 5,
     borderRadius: 8,
     fontSize: 18,
     color: "white",
-    height: 50,
+    width: 50,
+    textAlign: 'center',
+    // paddingHorizontal: 3,
+    // height: 50,
     backgroundColor: '#222',
   },
   activeInput: {

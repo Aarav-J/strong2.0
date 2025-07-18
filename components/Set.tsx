@@ -27,9 +27,15 @@ export default function Set({parentKey, set }: Prop)  {
                     />
                 </View>
                 <View style={[styles.weightContainer]}>
-                    <Text style={styles.setText}>
-                        {set.weight}
-                    </Text>
+                    <NumpadInput 
+                        value={set.weight.toString()}
+                        onChangeText={(text) => {
+                        const num = parseInt(text) || 0;
+                        // Add your store update logic here
+                        console.log('New value:', num);
+                        }} 
+                        inputId={`set-${parentKey}-${set.key}-weight`}
+                    /> 
                 </View>
                 <View style={[styles.hContainer]}><Checkbox parentKey={parentKey} keyNumber={set.key}/></View>
             </View>

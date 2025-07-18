@@ -119,7 +119,7 @@ export const useStore = create<StoreState>((set, get) => ({
         if (!currentSet) return null;
 
         const currentValue = field === 'rep' ? currentSet.rep.toString() : currentSet.weight.toString();
-        
+        if(currentValue.length >= 4) return null;
         // Insert key at selection position
         const newValue = currentValue.slice(0, selection.start) + key + currentValue.slice(selection.end);
         const newCursor = selection.start + 1;

@@ -28,6 +28,12 @@ export default function NumpadInput({ value, onChangeText, inputId }: Props) {
     }
   }, [currentSelection, isActive]); // Remove selection from dependencies
 
+  useEffect(() => {
+    if (activeInputId !== inputId) {
+      inputRef.current?.blur();
+    }
+  }, [activeInputId, inputId]);
+
   // Only update store when user manually changes selection (not from numpad)
   const updateStoreSelection = (newSelection: { start: number, end: number }) => {
     if (isActive) {

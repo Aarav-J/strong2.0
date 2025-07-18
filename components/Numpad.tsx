@@ -151,6 +151,7 @@ const styles = StyleSheet.create({
         bottom: 0,
         flexDirection: 'row',
         padding: 16,
+        zIndex: 1000,
     },
 
     numpadContainer: { 

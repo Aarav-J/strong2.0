@@ -13,6 +13,7 @@ export default function Checkbox({parentKey, keyNumber}: Props) {
     const activeSet = useStore((state) => state.activeSet)
     const setCompletedElement = useStore((state) => state.setCompletedElement)
     const workoutDetails = useStore((state) => state.workoutDetails)
+    const setActiveInputId = useStore((state) => state.setActiveInputId)
     const handleCheck = () => { 
         if(checked == false) {
             //  let tempActiveSet = [...activeSet]
@@ -22,6 +23,7 @@ export default function Checkbox({parentKey, keyNumber}: Props) {
             if(activeSet[2] == 1) { 
                 setCompletedElement(activeSet)
             }
+            setActiveInputId(null)
         } else  { 
             setActiveSet([parentKey, keyNumber, 0])
             setCompletedElement([parentKey, keyNumber, 0])

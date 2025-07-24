@@ -52,7 +52,8 @@ const styles = StyleSheet.create({
         // marginBottom: 4,
         paddingHorizontal: 20,
         alignItems: 'center',
-        width: "100%"
+        width: "100%",
+    
         
     },
     setNumberContainer: { 

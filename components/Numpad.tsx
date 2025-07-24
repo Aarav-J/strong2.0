@@ -141,17 +141,27 @@ export default function Numpad({handlePressKey, handlePressDelete}: Props) {
 
 const styles = StyleSheet.create({
     modalContainer: {
-        // flex: 1,
         width: '100%',
-        height: '33%',
+        height: 280, // Fixed height instead of percentage
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: "#1F2526",
         position: 'absolute',
         bottom: 0,
+        left: 0,
+        right: 0,
         flexDirection: 'row',
         padding: 16,
         zIndex: 1000,
+        // Add shadow for better visual separation
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: -2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
     },
 
     numpadContainer: { 

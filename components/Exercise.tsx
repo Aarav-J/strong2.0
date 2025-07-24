@@ -58,6 +58,7 @@ const styles = StyleSheet.create({
     exerciseContainer: { 
         flexDirection: "column",
         width: "100%", 
+    
         // backgroundColor: "red",
 
     },

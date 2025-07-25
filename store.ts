@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { ExerciseDetail } from './types';
 
-
 type StoreState = {
     activeExercise: number; 
     activeSet: number[]; 
@@ -20,6 +19,8 @@ type StoreState = {
     handleNumpadKeyPress: (key: string, selection: { start: number, end: number }) => { newValue: string, newCursor: number } | null;
     handleNumpadDelete: (selection: { start: number, end: number }) => { newValue: string, newCursor: number } | null;
     currentSelection: { start: number, end: number };
+    restCompletedVisible: boolean;
+    setRestCompletedVisible: (val: boolean) => void;
 };
 
 export const useStore = create<StoreState>((set, get) => ({
@@ -28,7 +29,7 @@ export const useStore = create<StoreState>((set, get) => ({
             key: 0,
             name: "Bench Press (Barbell)",
             sets: [
-                { key: 0, type: "set", rep: 12, weight: 90, completed: false, rest: {duration: 30, completed: false}},
+                { key: 0, type: "set", rep: 12, weight: 90, completed: false, rest: {duration: 10, completed: false}},
                 // { key: 1, type: "rest", duration: 120, completed: false },
                 { key: 1, type: "set", rep: 10, weight: 100, completed: false, rest: {duration: 120, completed: false} },
                 // { key: 3, type: "rest", duration: 120, completed: false }
@@ -171,5 +172,8 @@ export const useStore = create<StoreState>((set, get) => ({
         return null;
     },
     currentSelection: { start: 0, end: 0 },
-}))
+    restCompletedVisible: false, 
+    setRestCompletedVisible: (val: boolean) => set((state) => ({restCompletedVisible: val})),
 
+
+}));

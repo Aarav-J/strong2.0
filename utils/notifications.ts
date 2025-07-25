@@ -2,8 +2,8 @@ import Constants from "expo-constants";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
-export async function schedulePostNotification({title, body, endTs}: {title: string, body: string, endTs: Date}) { 
-    await Notifications.scheduleNotificationAsync({ 
+export async function schedulePostNotification({title, body, endTs}: {title: string, body: string, endTs: Date}): Promise<string> { 
+    const notificationId = await Notifications.scheduleNotificationAsync({ 
         content: {
             title: title, 
             body: body, 
@@ -11,9 +11,10 @@ export async function schedulePostNotification({title, body, endTs}: {title: str
         }, 
         trigger: {
             type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date: new Date(endTs), // Use the endTs date for the trigger
+            date: new Date(endTs.getTime() + 10), // Use the endTs date plus 10ms for the trigger
         }
     })
+    return notificationId;
 }
 export async function registerForPushNotificationsAsync() {
     let token; 

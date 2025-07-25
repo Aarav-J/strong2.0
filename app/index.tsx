@@ -1,4 +1,5 @@
 import Button from "@/components/Button";
+import CompletedModal from "@/components/CompletedModal";
 import Exercise from "@/components/Exercise";
 import Header from "@/components/Header";
 import Numpad from "@/components/Numpad";
@@ -23,7 +24,8 @@ export default function Index() {
   const [expoPushToken, setExpoPushToken] = useState<string>('');
   const [channels, setChannels] = useState<Notifications.NotificationChannel[]>([]);
   const [notification, setNotification] = useState<Notifications.Notification | undefined>(undefined);
-
+  const restCompletedVisible = useStore((state) => state.restCompletedVisible);
+  const setRestCompletedVisible = useStore((state) => state.setRestCompletedVisible);
   useEffect(() => {
     registerForPushNotificationsAsync().then(token => token && setExpoPushToken(token));
 
@@ -80,6 +82,7 @@ export default function Index() {
         handlePressKey={(digit: string) => console.log(`Pressed ${digit}`)} 
         handlePressDelete={() => console.log('Delete pressed')}
       />
+    <CompletedModal visible={restCompletedVisible} setVisible={setRestCompletedVisible}/>
     </View>
   );
 }

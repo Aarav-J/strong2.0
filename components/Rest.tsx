@@ -3,25 +3,24 @@ import { ExerciseSet } from '@/types';
 import { schedulePostNotification } from '@/utils/notifications';
 import { compareArrays } from '@/utils/utils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Notifications from 'expo-notifications';
 import React, { useEffect, useRef, useState } from 'react';
 import { AppState, AppStateStatus, StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-
 type Props = { set: ExerciseSet; parentKey: number };
 
-const Rest= ({ set, parentKey }: Props) => {
+const Rest = ({ set, parentKey }: Props) => {
   const duration = set.rest.duration;
   const storageKey = `restTimerEnd-${parentKey}-${set.key}`;
-
+  const notificationIdRef = useRef<string | null>(null);
   const [remainingTime, setRemainingTime] = useState<number>(duration);
   const [completed, setCompleted] = useState<boolean>(set.rest.completed);
   const intervalRef = useRef<number | null>(null);
   const width = useSharedValue<number>(1);
-
   const activeSet = useStore(state => state.activeSet);
   const setNext = useStore(state => state.setNext);
   const setCompletedElement = useStore(state => state.setCompletedElement);
-
+  const setRestCompletedVisible = useStore(state => state.setRestCompletedVisible);
   // Sync completed flag
   useEffect(() => {
     setCompleted(set.rest.completed);
@@ -53,6 +52,13 @@ const Rest= ({ set, parentKey }: Props) => {
     ) {
       setCompletedElement([parentKey, set.key, 1]);
       setNext();
+      if (AppState.currentState === 'active') {
+        if (notificationIdRef.current) {
+          Notifications.cancelScheduledNotificationAsync(notificationIdRef.current);
+          notificationIdRef.current = null;
+        }
+        setRestCompletedVisible(true);
+      }
     }
   }, [remainingTime, activeSet, completed]);
 
@@ -67,7 +73,7 @@ const Rest= ({ set, parentKey }: Props) => {
     const endTsNumber = now + duration * 1000;
     const endTs = new Date(endTsNumber);
     await AsyncStorage.setItem(storageKey, endTsNumber.toString());
-    await schedulePostNotification({
+    notificationIdRef.current = await schedulePostNotification({
       title: 'Rest Completed',
       body: 'Time to get back to work!',
       endTs,

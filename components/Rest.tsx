@@ -1,174 +1,233 @@
-import { useStore } from "@/store";
-import { ExerciseSet } from "@/types";
-import { schedulePostNotification } from "@/utils/notifications";
-import { compareArrays } from "@/utils/utils";
-import { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
-type Props = { 
-    set: ExerciseSet 
-    parentKey: number, 
-    // key: number, 
-}
+import { useStore } from '@/store';
+import { ExerciseSet } from '@/types';
+import { schedulePostNotification } from '@/utils/notifications';
+import { compareArrays } from '@/utils/utils';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useEffect, useRef, useState } from 'react';
+import { AppState, AppStateStatus, StyleSheet, Text, View } from 'react-native';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
-const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
-}
-export default function Rest({set, parentKey}: Props) {
-    const [completed, setCompleted] = useState(false)
-    // const [active, setActive] = useState(true)
-    const workoutDetails = useStore((state) => state.workoutDetails)
-    const activeSet = useStore((state) => state.activeSet)
-    const setNext = useStore((state) => state.setNext)
-    const setCompletedElement = useStore((state) => state.setCompletedElement)
-    const width = useSharedValue(1); // 1 means 100%
-//    useEffect(() => { 
+type Props = { set: ExerciseSet; parentKey: number };
 
-//    }, [workoutDetails[parentKey].sets[key].duration])
-    const duration = set.rest.duration
-    
-    const [remainingTime, setRemainingTime] = useState(duration)
-    const handleCompleted = async () => { 
-        setCompletedElement([parentKey, set.key, 1]);
-        setNext();
-        setRemainingTime(duration);
-        schedulePostNotification({title: "Rest Completed", body: "Time to get back to work!", delay: 1});
-        console.log("rest completed")
+const Rest= ({ set, parentKey }: Props) => {
+  const duration = set.rest.duration;
+  const storageKey = `restTimerEnd-${parentKey}-${set.key}`;
+
+  const [remainingTime, setRemainingTime] = useState<number>(duration);
+  const [completed, setCompleted] = useState<boolean>(set.rest.completed);
+  const intervalRef = useRef<number | null>(null);
+  const width = useSharedValue<number>(1);
+
+  const activeSet = useStore(state => state.activeSet);
+  const setNext = useStore(state => state.setNext);
+  const setCompletedElement = useStore(state => state.setCompletedElement);
+
+  // Sync completed flag
+  useEffect(() => {
+    setCompleted(set.rest.completed);
+  }, [set.rest.completed]);
+
+  // On mount and app resume, re-sync any existing timer
+  useEffect(() => {
+    syncTimerFromStorage();
+    const sub = AppState.addEventListener('change', handleAppStateChange);
+    return () => {
+      sub.remove();
+      if (intervalRef.current !== null) clearInterval(intervalRef.current);
+    };
+  }, [duration]);
+
+  // Start timer when this set becomes active
+  useEffect(() => {
+    if (compareArrays(activeSet, [parentKey, set.key, 1])) {
+      initializeTimer();
     }
-        
-    // Or, if you are confident and want to avoid the cast:
-    // const [remainingTime, setRemainingTime] = useState(set.duration);
-    // If you want to be extra safe, you could throw if duration is missing:
-    // if (typeof set.duration !== "number") throw new Error("Rest component requires set with duration");
-      useEffect(() => { 
-        setCompleted(set.rest.completed)
-    }, [set.rest.completed])
+  }, [activeSet, duration]);
 
-    useEffect(() => { 
-        let timer: ReturnType<typeof setInterval>;
-        if (compareArrays(activeSet, [parentKey, set.key, 1])) {
-            setRemainingTime(duration);
-            width.value = 1; // reset width to full when activated
-            width.value = withTiming(0, { 
-                duration: duration * 1000, 
-                easing: Easing.linear
-            });
-            timer = setInterval(() => {
-                setRemainingTime((prev) => {
-                    if (prev <= 1) {
-                        return 0;
-                    }
-                    return prev - 1;
-                });
-            }, 1000);
-        }
-        return () => clearInterval(timer);
-    }, [activeSet,duration, width]);
+  // Handle completion side-effect
+  useEffect(() => {
+    if (
+      compareArrays(activeSet, [parentKey, set.key, 1]) &&
+      remainingTime === 0 &&
+      !completed
+    ) {
+      setCompletedElement([parentKey, set.key, 1]);
+      setNext();
+    }
+  }, [remainingTime, activeSet, completed]);
 
-    // NEW: handle completion as a side effect
-    useEffect(() => {
-        if (
-            compareArrays(activeSet, [parentKey, set.key, 1]) &&
-            remainingTime === 0 &&
-            !completed
-        ) {
-            handleCompleted();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [remainingTime, activeSet, completed]);
-    const animatedStyle = useAnimatedStyle(() => ({
-        width: `${width.value * 100}%`,
-    }));
+  const handleAppStateChange = (state: AppStateStatus) => {
+    if (state === 'active') {
+      syncTimerFromStorage();
+    }
+  };
 
-    return (
-        <View style={[completed ? styles.completedContainer : null]}>
-            <View style={{paddingHorizontal: 20}}>
-            {compareArrays(activeSet, [parentKey, set.key, 1]) ? (
-                <View style={styles.activeContainer}>
-                <Animated.View style={[styles.timerContainer, animatedStyle]}></Animated.View>
-                <Text style={styles.activeText}>{formatTime(remainingTime)}</Text>
-            </View>
-            ) :  (
-            <View style={styles.inactiveContainer}>
-                <View style ={completed ? styles.greenLine : styles.blueLine}></View>
-                <Text style={[styles.inactiveText, completed && styles.greenText]}>{formatTime(duration)}</Text>
-                <View style ={completed ? styles.greenLine : styles.blueLine}></View>
-            </View> 
+  const initializeTimer = async () => {
+    const now = Date.now();
+    const endTsNumber = now + duration * 1000;
+    const endTs = new Date(endTsNumber);
+    await AsyncStorage.setItem(storageKey, endTsNumber.toString());
+    await schedulePostNotification({
+      title: 'Rest Completed',
+      body: 'Time to get back to work!',
+      endTs,
+    });
+    startSyncedTimer(endTsNumber);
+  };
+
+  const syncTimerFromStorage = async () => {
+  const stored = await AsyncStorage.getItem(storageKey);
+  if (!stored) {
+    setRemainingTime(duration);
+    width.value = 1;
+    return;
+  }
+  const endTsNumber = parseInt(stored, 10);
+  if (endTsNumber <= Date.now()) {
+    await AsyncStorage.removeItem(storageKey);
+    setRemainingTime(0);
+    width.value = 0;
+  } else {
+    // Calculate the correct width based on remaining time
+    const now = Date.now();
+    const remainingMs = endTsNumber - now;
+    const remainingSeconds = Math.ceil(remainingMs / 1000);
+    const progressRatio = remainingMs / (duration * 1000);
+    
+    // Set the width to match the remaining time
+    width.value = progressRatio;
+    setRemainingTime(remainingSeconds);
+    
+    // Continue the animation from current position
+    width.value = withTiming(0, { 
+      duration: remainingMs, 
+      easing: Easing.linear 
+    });
+    
+    // Start the interval timer
+    intervalRef.current = setInterval(() => {
+      const msLeft = endTsNumber - Date.now();
+      if (msLeft <= 0) {
+        clearInterval(intervalRef.current!);
+        AsyncStorage.removeItem(storageKey);
+        setRemainingTime(0);
+      } else {
+        setRemainingTime(Math.ceil(msLeft / 1000));
+      }
+    }, 1000);
+  }
+};
+
+  const startSyncedTimer = (endTsNumber: number) => {
+    if (intervalRef.current !== null) {
+      clearInterval(intervalRef.current);
+    }
+    const now = Date.now();
+    const remainingMs = endTsNumber - now;
+    width.value = 1;
+    width.value = withTiming(0, { duration: remainingMs, easing: Easing.linear });
+    setRemainingTime(Math.ceil(remainingMs / 1000));
+    intervalRef.current = setInterval(() => {
+      const msLeft = endTsNumber - Date.now();
+      if (msLeft <= 0) {
+        clearInterval(intervalRef.current!);
+        AsyncStorage.removeItem(storageKey);
+        setRemainingTime(0);
+      } else {
+        setRemainingTime(Math.ceil(msLeft / 1000));
+      }
+    }, 1000);
+  };
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    width: `${width.value * 100}%`,
+  }));
+
+  const formatTime = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
+
+  return (
+    <View style={[completed ? styles.completedContainer : undefined]}>
+      <View style={{ paddingHorizontal: 20 }}>
+        {compareArrays(activeSet, [parentKey, set.key, 1]) ? (
+          <View style={styles.activeContainer}>
+            <Animated.View style={[styles.timerContainer, animatedStyle]} />
+            <Text style={styles.activeText}>{formatTime(remainingTime)}</Text>
+          </View>
+        ) : (
+          <View style={styles.inactiveContainer}>
+            <View style={completed ? styles.greenLine : styles.blueLine} />
+            <Text style={[styles.inactiveText, completed && styles.greenText]}>  
+              {formatTime(duration)}
+            </Text>
+            <View style={completed ? styles.greenLine : styles.blueLine} />
+          </View>
         )}
-            </View>
-            </View>
-    )
-}
-
-
+      </View>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
-    activeContainer: {
-        flexDirection: "row",
-        justifyContent: "center",
-        alignItems: "center",
-        // padding: 16,
-        // backgroundColor: "#34A6FB",
-        borderRadius: 8,
-        backgroundColor: "#2D5472",
-        position: "relative",
-        width: "100%",
-        height: 40,
-        zIndex: 1,
-        marginTop: 4,
-        marginBottom: 4,
-        // paddingHorizontal: 30, 
-        // backgroundSize: ""
-    },
-    completedContainer: { 
-        backgroundColor: 'rgba(46, 205, 112, 0.33)',
-    },
-    timerContainer: { 
-        width: "100%", 
-        height: "100%",
-        backgroundColor: "#34A6FB",
-        borderRadius: 8,
-        position: "absolute",
-        top: 0,
-        left: 0,
-        // padding: 1,
-
-        zIndex: -1,
-        // opacity: 1,
-    },
-    activeText: {
-        color: "white",
-        fontSize: 18,
-        fontWeight: "bold",
-    },
-    blueLine: { 
-        borderRadius: 8,
-        height: "20%",
-        width: "43%",
-        backgroundColor: "#2D5472",
-        // marginHorizontal: 8,
-    },
-    greenLine: { 
-        borderRadius: 8,
-        height: "20%", 
-        width: "43%", 
-        backgroundColor: "#2ECD70"
-    },
-    inactiveContainer: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        paddingVertical: 8,
-        // paddingHorizontal: 30, 
-    },
-    inactiveText: {
-        color: "#34A6FB",
-        fontSize: 16,
-        fontWeight: "bold"
-    },
-    greenText: { 
-        color: '#2ECD70'
-    }
+  activeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+    backgroundColor: '#2D5472',
+    position: 'relative',
+    width: '100%',
+    height: 40,
+    zIndex: 1,
+    marginVertical: 4,
+  },
+  completedContainer: {
+    backgroundColor: 'rgba(46, 205, 112, 0.33)',
+  },
+  timerContainer: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#34A6FB',
+    borderRadius: 8,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: -1,
+  },
+  activeText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  blueLine: { 
+    borderRadius: 8,
+    height: '20%',
+    width: '43%',
+    backgroundColor: '#2D5472',
+  },
+  greenLine: { 
+    borderRadius: 8,
+    height: '20%', 
+    width: '43%', 
+    backgroundColor: '#2ECD70'
+  },
+  inactiveContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  inactiveText: {
+    color: '#34A6FB',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  greenText: {
+    color: '#2ECD70',
+  },
 });
+
+export default Rest;

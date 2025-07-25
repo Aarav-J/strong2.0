@@ -5,9 +5,11 @@ import Header from "@/components/Header";
 import Numpad from "@/components/Numpad";
 import { useStore } from "@/store";
 import { registerForPushNotificationsAsync } from "@/utils/notifications";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { useEffect, useState } from "react";
 import { Platform, ScrollView, StyleSheet, View } from "react-native";
+
 Notifications.setNotificationHandler({ 
   handleNotification: async () => ({ 
     shouldPlaySound: false, 
@@ -18,7 +20,6 @@ Notifications.setNotificationHandler({
 })
 export default function Index() {
   const [visible, setVisible] = useState(false);
-  const startDate = new Date();
   const workoutDetails = useStore((state) => state.workoutDetails);
   const numpadVisible = useStore((state) => state.numpadVisible);
   const [expoPushToken, setExpoPushToken] = useState<string>('');
@@ -27,6 +28,7 @@ export default function Index() {
   const restCompletedVisible = useStore((state) => state.restCompletedVisible);
   const setRestCompletedVisible = useStore((state) => state.setRestCompletedVisible);
   useEffect(() => {
+    AsyncStorage.setItem("startDate", new Date().toISOString());
     registerForPushNotificationsAsync().then(token => token && setExpoPushToken(token));
 
     if (Platform.OS === 'android') {
@@ -59,7 +61,7 @@ export default function Index() {
       >
         <Header 
           title="Midday Workout" 
-          startDate={startDate} 
+          // startDate={startDte} 
         />
         <View style={styles.exerciseContainer}>
           {workoutDetails.map((exercise, index) => (

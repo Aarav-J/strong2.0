@@ -1,25 +1,34 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-
 type props = { 
     title: string; 
-    startDate: Date; 
+    
 }
 
-export default function Header({title, startDate}: props) {
-    const date = startDate.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-    });
-    const [secondsRunning, setSecondsRunning] = useState(0);
+export default function Header({title}: props) {
     
+    const [date, setDate] = useState<Date | null>(null);  
+    const [secondsRunning, setSecondsRunning] = useState<number | null>(null);
     useEffect(() => { 
-        const interval = setInterval(() => { 
-            setSecondsRunning((prev) => prev + 1);
-        }, 1000);
-        return () => clearInterval(interval);
+        !date && AsyncStorage.getItem("startDate").then((startDate) => {
+        if (startDate) {
+            console.log("Start Date:", startDate);
+            const startDateTime = new Date(startDate);
+            setDate(startDateTime);
+            
+            // Start the interval immediately after setting the date
+            const interval = setInterval(() => { 
+                const now = new Date();
+                const diff = Math.floor((now.getTime() - startDateTime.getTime()) / 1000);
+                setSecondsRunning(diff);
+            }, 1000);
+            
+            // Clean up function
+            return () => clearInterval(interval);
+        }
+        });
     }, []);
     const formatTime = (seconds: number) => { 
         const hours = Math.floor(seconds / 3600);
@@ -33,11 +42,15 @@ export default function Header({title, startDate}: props) {
             {/* <View style={styles.dateContainer}> */}
                 <View style={styles.infoContainer}> 
                     <FontAwesome name="calendar" size={16} color="white" />
-                    <Text style={styles.date}>{date}</Text>
+                    <Text style={styles.date}>{date?.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                    })}</Text>
                 </View>
                 <View style={styles.infoContainer}>
                     <FontAwesome name="clock-o" size={16} color="white" />
-                    <Text style={styles.time}>{formatTime(secondsRunning)}</Text>
+                    <Text style={styles.time}>{formatTime(secondsRunning || 0)}</Text>
                 </View>
             {/* </View> */}
         </View>

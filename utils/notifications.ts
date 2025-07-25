@@ -2,12 +2,12 @@ import Constants from "expo-constants";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
-export async function schedulePostNotification({title, body, endTs}: {title: string, body: string, endTs: Date}): Promise<string> { 
+export async function schedulePostNotification({title, body, endTs, data}: {title: string, body: string, endTs: Date, data: {type: "rest" | "inactive", key?: string}}): Promise<string> { 
     const notificationId = await Notifications.scheduleNotificationAsync({ 
         content: {
             title: title, 
             body: body, 
-            data: {data: 'goes here', test: {test1: "more data"}}
+            data: data
         }, 
         trigger: {
             type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -53,4 +53,15 @@ export async function registerForPushNotificationsAsync() {
         alert('Must use physical device for Push Notifications');
     }
     return token; 
+}
+
+export const cancelRestNotification = async () => {
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    scheduled.filter((n) => n.content.data.type == 'rest').forEach((n) => {
+        Notifications.cancelScheduledNotificationAsync(n.identifier);
+    });
+};
+
+export const cancelAllNotifications = async () => {
+    await Notifications.cancelAllScheduledNotificationsAsync();
 }

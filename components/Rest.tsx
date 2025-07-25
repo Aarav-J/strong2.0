@@ -76,7 +76,11 @@ const Rest = ({ set, parentKey }: Props) => {
     notificationIdRef.current = await schedulePostNotification({
       title: 'Rest Completed',
       body: 'Time to get back to work!',
-      endTs,
+      data: {
+        type: 'rest',
+        key: `${parentKey}-${set.key}`,
+      },
+      endTs: endTs,
     });
     startSyncedTimer(endTsNumber);
   };

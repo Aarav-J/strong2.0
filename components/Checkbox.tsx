@@ -1,4 +1,5 @@
 import { useStore } from "@/store"
+import { cancelRestNotification } from "@/utils/notifications"
 import { FontAwesome } from "@expo/vector-icons"
 import { useState } from "react"
 import { Pressable, StyleSheet, View } from "react-native"
@@ -14,8 +15,9 @@ export default function Checkbox({parentKey, keyNumber}: Props) {
     const setCompletedElement = useStore((state) => state.setCompletedElement)
     const workoutDetails = useStore((state) => state.workoutDetails)
     const setActiveInputId = useStore((state) => state.setActiveInputId)
-    const handleCheck = () => { 
-        if(checked == false) {
+    const handleCheck = async () => { 
+        cancelRestNotification();
+        if(!checked) {
             //  let tempActiveSet = [...activeSet]
             //  tempActiveSet[2] = 1
             setCompletedElement([parentKey, keyNumber, 0])
@@ -25,6 +27,7 @@ export default function Checkbox({parentKey, keyNumber}: Props) {
             }
             setActiveInputId(null)
         } else  { 
+            
             setActiveSet([parentKey, keyNumber, 0])
             setCompletedElement([parentKey, keyNumber, 0])
             if(workoutDetails[parentKey].sets[keyNumber].rest.completed) { 

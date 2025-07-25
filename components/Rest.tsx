@@ -61,7 +61,23 @@ const Rest = ({ set, parentKey }: Props) => {
       }
     }
   }, [remainingTime, activeSet, completed]);
-
+  useEffect(() => {
+  if (!set.rest.completed && completed) {
+    // Rest was reset externally, clean up
+    if (intervalRef.current !== null) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    if (notificationIdRef.current) {
+      Notifications.cancelScheduledNotificationAsync(notificationIdRef.current);
+      notificationIdRef.current = null;
+    }
+    AsyncStorage.removeItem(storageKey);
+    setRemainingTime(duration);
+    width.value = 1;
+    setCompleted(false);
+  }
+}, [set.rest.completed]);
   const handleAppStateChange = (state: AppStateStatus) => {
     if (state === 'active') {
       syncTimerFromStorage();

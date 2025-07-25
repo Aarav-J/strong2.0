@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { ExerciseDetail } from './types';
 
@@ -21,6 +22,7 @@ type StoreState = {
     currentSelection: { start: number, end: number };
     restCompletedVisible: boolean;
     setRestCompletedVisible: (val: boolean) => void;
+    resetRestTimer: (parentKey: number, setKey: number) => void;
 };
 
 export const useStore = create<StoreState>((set, get) => ({
@@ -174,6 +176,18 @@ export const useStore = create<StoreState>((set, get) => ({
     currentSelection: { start: 0, end: 0 },
     restCompletedVisible: false, 
     setRestCompletedVisible: (val: boolean) => set((state) => ({restCompletedVisible: val})),
-
+    resetRestTimer: (parentKey, setKey) => 
+        set((state) => {
+        const newWorkoutDetails = [...state.workoutDetails];
+        if (newWorkoutDetails[parentKey]?.sets[setKey]) {
+            // Reset rest completion status
+            newWorkoutDetails[parentKey].sets[setKey].rest.completed = false;
+            
+            // Clear any stored timer data
+            const storageKey = `restTimerEnd-${parentKey}-${setKey}`;
+            AsyncStorage.removeItem(storageKey);
+        }
+        return { workoutDetails: newWorkoutDetails };
+    }),
 
 }));

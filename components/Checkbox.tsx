@@ -1,27 +1,40 @@
 import { useStore } from "@/store"
 import { cancelRestNotification } from "@/utils/notifications"
 import { FontAwesome } from "@expo/vector-icons"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Pressable, StyleSheet, View } from "react-native"
+
 type Props = {
     parentKey: number, 
     keyNumber: number
 }
+
 export default function Checkbox({parentKey, keyNumber}: Props) {
-    const [checked, setChecked] = useState(false)
+    const workoutDetails = useStore((state) => state.workoutDetails)
     const setNext = useStore((state) => state.setNext)
     const setActiveSet = useStore((state) => state.setActiveSet)
     const activeSet = useStore((state) => state.activeSet)
     const setCompletedElement = useStore((state) => state.setCompletedElement)
-    const workoutDetails = useStore((state) => state.workoutDetails)
     const setActiveInputId = useStore((state) => state.setActiveInputId)
+    const resetRestTimer = useStore((state) => state.resetRestTimer)
+
+   
+    const currentSet = workoutDetails[parentKey]?.sets[keyNumber]
+    const [checked, setChecked] = useState(currentSet?.completed || false)
+
+    useEffect(() => {
+        setChecked(currentSet?.completed || false)
+    }, [currentSet?.completed])
+
     const handleCheck = async () => { 
         cancelRestNotification();
+        
         if(!checked) {
-            //  let tempActiveSet = [...activeSet]
-            //  tempActiveSet[2] = 1
+            
             setCompletedElement([parentKey, keyNumber, 0])
             setActiveSet([parentKey, keyNumber, 1])
+            
+           
             if(activeSet[2] == 1) { 
                 setCompletedElement(activeSet)
             }
@@ -30,14 +43,19 @@ export default function Checkbox({parentKey, keyNumber}: Props) {
             
             setActiveSet([parentKey, keyNumber, 0])
             setCompletedElement([parentKey, keyNumber, 0])
+            
+            
+            resetRestTimer(parentKey, keyNumber)
+            
+    
             if(workoutDetails[parentKey].sets[keyNumber].rest.completed) { 
                 setCompletedElement([parentKey, keyNumber, 1])
             }
         }
         
         setChecked(!checked)
-        
     }
+
     return ( 
         <View style={styles.checkContainer}>
             <Pressable style={checked ? styles.checkedButton : styles.checkButton} onPress={handleCheck}>

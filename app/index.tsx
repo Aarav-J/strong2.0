@@ -3,14 +3,46 @@ import Exercise from "@/components/Exercise";
 import Header from "@/components/Header";
 import Numpad from "@/components/Numpad";
 import { useStore } from "@/store";
-import { useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
-
+import { registerForPushNotificationsAsync } from "@/utils/notifications";
+import * as Notifications from "expo-notifications";
+import { useEffect, useState } from "react";
+import { Platform, ScrollView, StyleSheet, View } from "react-native";
+Notifications.setNotificationHandler({ 
+  handleNotification: async () => ({ 
+    shouldPlaySound: false, 
+    shouldSetBadge: true, 
+    shouldShowBanner: true, 
+    shouldShowList: true, 
+  })
+})
 export default function Index() {
   const [visible, setVisible] = useState(false);
   const startDate = new Date();
   const workoutDetails = useStore((state) => state.workoutDetails);
   const numpadVisible = useStore((state) => state.numpadVisible);
+  const [expoPushToken, setExpoPushToken] = useState<string>('');
+  const [channels, setChannels] = useState<Notifications.NotificationChannel[]>([]);
+  const [notification, setNotification] = useState<Notifications.Notification | undefined>(undefined);
+
+  useEffect(() => {
+    registerForPushNotificationsAsync().then(token => token && setExpoPushToken(token));
+
+    if (Platform.OS === 'android') {
+      Notifications.getNotificationChannelsAsync().then(value => setChannels(value ?? []));
+    }
+    const notificationListener = Notifications.addNotificationReceivedListener(notification => {
+      setNotification(notification);
+    });
+
+    const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
+      console.log(response);
+    });
+
+    return () => {
+      notificationListener.remove();
+      responseListener.remove();
+    };
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -34,10 +66,11 @@ export default function Index() {
           <View style={styles.addExerciseContainer}>
             <Button 
               title="Add Exercise"
-              onPress={() => setVisible(true)}
+              onPress={() => console.log('Add Exercise Pressed')}
               backgroundColor="#2D5472"
               color="#34A6FB"
             />
+
           </View>
         </View>
       </ScrollView>

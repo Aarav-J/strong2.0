@@ -1,5 +1,6 @@
 import { useStore } from "@/store";
 import { ExerciseSet } from "@/types";
+import { schedulePostNotification } from "@/utils/notifications";
 import { compareArrays } from "@/utils/utils";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -29,7 +30,13 @@ export default function Rest({set, parentKey}: Props) {
     const duration = set.rest.duration
     
     const [remainingTime, setRemainingTime] = useState(duration)
-        
+    const handleCompleted = async () => { 
+        setCompletedElement([parentKey, set.key, 1]);
+        setNext();
+        setRemainingTime(duration);
+        schedulePostNotification({title: "Rest Completed", body: "Time to get back to work!", delay: 1});
+        console.log("rest completed")
+    }
         
     // Or, if you are confident and want to avoid the cast:
     // const [remainingTime, setRemainingTime] = useState(set.duration);
@@ -67,9 +74,7 @@ export default function Rest({set, parentKey}: Props) {
             remainingTime === 0 &&
             !completed
         ) {
-            setCompletedElement([parentKey, set.key, 1]);
-            setNext()
-            setRemainingTime(duration)
+            handleCompleted();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [remainingTime, activeSet, completed]);

@@ -2,6 +2,7 @@ import { useStore } from '@/store';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, TextInput } from 'react-native';
 
+
 type Props = {
   value: string;
   onChangeText: (text: string) => void;
@@ -10,7 +11,7 @@ type Props = {
 
 export default function NumpadInput({ value, onChangeText, inputId }: Props) {
   const inputRef = useRef<TextInput>(null);
-  const [selection, setSelection] = useState({ start: value.length, end: value.length });
+  const [selection, setSelection] = useState({ start: 0, end: value.length });
   
   const numpadVisible = useStore((state) => state.numpadVisible);
   const setNumpadVisible = useStore((state) => state.setNumpadVisible);
@@ -61,7 +62,7 @@ export default function NumpadInput({ value, onChangeText, inputId }: Props) {
         setActiveInputId(inputId);
         setNumpadVisible(true);
         const pos = value.length;
-        const newSelection = { start: pos, end: pos };
+        const newSelection = { start: 0, end: value.length };
         setSelection(newSelection);
         updateStoreSelection(newSelection);
       }}

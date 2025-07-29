@@ -6,13 +6,15 @@ import * as Papa from 'papaparse';
 import { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 // import { FlatList } from 'react-native-reanimated/lib/typescript/Animated';
-import { fuzzySearch } from '@/utils/utils';
+import Filter from '@/components/ExerciseList/Filter';
+import { filterExercises, fuzzySearch } from '@/utils/utils';
 
 const Exercises = () => { 
     const [exerciseData, setExerciseData] = useState<ExerciseType[]>([]);
     const [isActive, setIsActive] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(false);
+    const [filterChoices, setFilterChoices] = useState<string[][]>([[], []]); 
     
     const loadCsv = async () => {
         try {
@@ -32,7 +34,7 @@ const Exercises = () => {
                 delimiter: ',',
             });
             
-            console.log('Parsed CSV data:', result.data);
+            // console.log('Parsed CSV data:', result.data);
             setExerciseData(result.data as ExerciseType[]);
             
         } catch (error) {
@@ -56,6 +58,7 @@ const Exercises = () => {
                 <TextInput
                     style={[styles.searchInput, isActive && styles.activeInput]}
                     placeholder="Search exercises..."
+                    returnKeyType="done"
                     placeholderTextColor="#666"
                     onFocus={() => setIsActive(true)}
                     onBlur={() => setIsActive(false)}
@@ -64,6 +67,7 @@ const Exercises = () => {
                         setSearchQuery(text);
                     }}
                 />
+                <Filter filterChoices={filterChoices} setFilterChoices={setFilterChoices} />
                 <Text style={styles.text}>
                     Loaded {exerciseData.length} exercises
                 </Text>
@@ -77,7 +81,7 @@ const Exercises = () => {
                 ) : 
                 (
                     <FlatList
-                        data={searchQuery ? fuzzySearch(exerciseData, searchQuery) : exerciseData}
+                        data={searchQuery ? fuzzySearch(filterExercises(exerciseData, filterChoices), searchQuery) : filterExercises(exerciseData, filterChoices)}
                         renderItem={renderExercise}
                         keyExtractor={(item, index) => `${item.id}`}
                         // contentContainerStyle={{ paddingBottom: 20 }}
@@ -114,6 +118,7 @@ const styles = StyleSheet.create({
         paddingBottom: 20,
         backgroundColor: '#111113',
         alignItems: 'center',
+        justifyContent: 'center',
         borderBottomWidth: 1,
         borderBottomColor: '#333',
     },

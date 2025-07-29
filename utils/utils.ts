@@ -24,3 +24,20 @@ export const fuzzySearch = (data: Exercise[], query: string) => {
     const results = fuse.search(query);
     return results.map(result => result.item);
 }
+
+export const filterExercises = (data: Exercise[], filterChoices: string[][]) => {
+    if (
+        Array.isArray(filterChoices) &&
+        filterChoices.length === 2 &&
+        filterChoices[0].length === 0 &&
+        filterChoices[1].length === 0
+    ) return data;
+
+    return data.filter((exercise) => {
+        const bodyPartMatch = filterChoices[0].length === 0 || filterChoices[0].includes(exercise.target);
+        const categoryMatch = filterChoices[1].length === 0 || exercise.equipment.some(eq => filterChoices[1].includes(eq));
+        return bodyPartMatch && categoryMatch;
+    });
+    
+
+}

@@ -7,3 +7,14 @@ export type ExerciseDetail = {
     name: string;
     sets: ExerciseSet[];
 };
+
+export type Exercise = { 
+    id: number; 
+    name: string; 
+    level: string, 
+    target: string, 
+    equipment: string[], 
+    directions: string[], 
+    type: string, 
+    image_path: string, 
+}

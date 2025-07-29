@@ -1,20 +1,37 @@
-from PIL import Image
-import os 
-import glob
+import cv2
+import mediapipe as mp
+import numpy as np
 
-def save_left_half(input_path:str) : 
-    img = Image.open(input_path)
-    width, height = img.size
-    left = img.crop((0, 0, width //2, height))
-    left_rgba = left.convert("RGBA")
-    base, ext = os.path.splitext(input_path)
-    out_path = base + "_thumbnail.png" 
-    left_rgba.save(out_path, format="PNG")
-    # left.save(input_path.replace('.jpg', '_thumbnail.jpg'))
+mp_pose = mp.solutions.pose
+pose = mp_pose.Pose(static_image_mode=True)
 
-if __name__ == "__main__": 
-    os.makedirs('./thumbnails', exist_ok=True)
-    for img_path in glob.glob("./downloaded_images/*.jpg"): 
-        filename = os.path.basename(img_path)
-        save_left_half(img_path)
-                                 
+def get_pose_box(img: np.ndarray):
+    h, w = img.shape[:2]
+    rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    res = pose.process(rgb)
+    if not res.pose_landmarks:
+        return None
+
+    # collect all landmark x,y in pixels
+    pts = [(int(lm.x * w), int(lm.y * h)) for lm in res.pose_landmarks.landmark]
+    xs, ys = zip(*pts)
+    x1, x2 = max(0, min(xs)), min(w, max(xs))
+    y1, y2 = max(0, min(ys)), min(h, max(ys))
+    return x1, y1, x2-x1, y2-y1
+
+def crop_centered(img, cx, cy, crop_w, crop_h):
+    h, w = img.shape[:2]
+    x1 = max(0, min(int(cx - crop_w//2), w - crop_w))
+    y1 = max(0, min(int(cy - crop_h//2), h - crop_h))
+    return img[y1:y1+crop_h, x1:x1+crop_w]
+
+img = cv2.imread('./ab_wheel_rollout.jpg')
+box = get_pose_box(img)
+if box:
+    x, y, bw, bh = box
+    cx, cy = x + bw/2, y + bh/2
+else:
+    cx, cy = img.shape[1]//4, img.shape[0]//2  # fallback
+
+crop = crop_centered(img, cx, cy, img.shape[1]//2, img.shape[0])
+cv2.imwrite('./ab_wheel_rollout_new.jpg', crop)

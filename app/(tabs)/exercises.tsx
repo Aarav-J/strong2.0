@@ -2,14 +2,16 @@ import ExercisePreview from '@/components/ExerciseList/ExercisePreview';
 import { Exercise as ExerciseType } from '@/types';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
-import { Image } from 'expo-image';
 import * as Papa from 'papaparse';
 import { useEffect, useState } from 'react';
-import { Button, FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 // import { FlatList } from 'react-native-reanimated/lib/typescript/Animated';
+import { fuzzySearch } from '@/utils/utils';
 
 const Exercises = () => { 
-    const [csvData, setCsvData] = useState<ExerciseType[]>([]);
+    const [exerciseData, setExerciseData] = useState<ExerciseType[]>([]);
+    const [isActive, setIsActive] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(false);
     
     const loadCsv = async () => {
@@ -31,7 +33,7 @@ const Exercises = () => {
             });
             
             console.log('Parsed CSV data:', result.data);
-            setCsvData(result.data as ExerciseType[]);
+            setExerciseData(result.data as ExerciseType[]);
             
         } catch (error) {
             console.error('Error loading CSV:', error);
@@ -51,19 +53,19 @@ const Exercises = () => {
     return ( 
         <View style={styles.container}>
             <View style={styles.headerContainer}>
-                <Image
-                    style={styles.image}
-                    source={require('../../assets/images/barbell_curls_thumbnail.png')}
-                    contentFit="fill"
-                    transition={1000}
-                />
-                <Button 
-                    title={loading ? "Loading..." : "Reload CSV"} 
-                    onPress={loadCsv}
-                    disabled={loading}
+                <TextInput
+                    style={[styles.searchInput, isActive && styles.activeInput]}
+                    placeholder="Search exercises..."
+                    placeholderTextColor="#666"
+                    onFocus={() => setIsActive(true)}
+                    onBlur={() => setIsActive(false)}
+                    value={searchQuery}
+                    onChangeText={(text) => {
+                        setSearchQuery(text);
+                    }}
                 />
                 <Text style={styles.text}>
-                    Loaded {csvData.length} exercises
+                    Loaded {exerciseData.length} exercises
                 </Text>
             </View>
 
@@ -75,7 +77,7 @@ const Exercises = () => {
                 ) : 
                 (
                     <FlatList
-                        data={csvData}
+                        data={searchQuery ? fuzzySearch(exerciseData, searchQuery) : exerciseData}
                         renderItem={renderExercise}
                         keyExtractor={(item, index) => `${item.id}`}
                         // contentContainerStyle={{ paddingBottom: 20 }}
@@ -146,4 +148,18 @@ const styles = StyleSheet.create({
         backgroundColor: '#333',
         marginVertical: 10,
     },
+    searchInput: { 
+        width: '100%',
+        height: 50,
+        backgroundColor: '#222',
+        borderRadius: 8,
+        paddingHorizontal: 15,
+        color: 'white',
+        fontSize: 16,
+        marginBottom: 20,
+    },
+    activeInput: { 
+        borderColor: 'white',
+        borderWidth: 2,
+    }
 });

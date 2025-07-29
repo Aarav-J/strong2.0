@@ -40,21 +40,10 @@ const Filter = ({filterChoices, setFilterChoices}: FilterProps) => {
     ]);
     
     const [categories, setCategories] = useState<FilterOption[]>([
-        { id: 'ab_roller', label: 'AB Roller', selected: false },
-        { id: 'barbell', label: 'Barbell', selected: false },
-        { id: 'bench', label: 'Bench', selected: false },
-        { id: 'cable_pull_station', label: 'Cable Pull Station', selected: false },
-        { id: 'decline_bench', label: 'Decline Bench', selected: false },
-        { id: 'dip_bars', label: 'Dip Bars', selected: false },
-        { id: 'hyperextension_bench', label: 'Hyperextension Bench', selected: false },
-        { id: 'incline_bench', label: 'Incline Bench', selected: false },
-        { id: 'kettlebell', label: 'Kettlebell', selected: false },
-        { id: 'machine', label: 'Machine', selected: false },
-        { id: 'pull_up_bar', label: 'Pull-up Bar', selected: false },
-        { id: "dumbell", label: "Dumbell", selected: false},
-        { id: "exercise_ball", label: "Exercise Ball", selected: false},
-        { id: "exercise_without_equipment", label: "Exercise Without Equipment", selected: false},
-        { id: "fitness_bands", label: "Fitness Bands", selected: false},
+        {id: "body_weight", label: "Body weight", selected: false},
+        {id: "free_weights", label: "Free weights", selected: false},
+        {id: "machine", label: "Machine", selected: false},
+        {id: "cable", label: "Cable pull", selected: false},
     ]);
 
     const toggleBodyPart = (id: string) => {

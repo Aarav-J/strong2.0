@@ -35,9 +35,7 @@ export const filterExercises = (data: Exercise[], filterChoices: string[][]) => 
 
     return data.filter((exercise) => {
         const bodyPartMatch = filterChoices[0].length === 0 || filterChoices[0].includes(exercise.target);
-        const categoryMatch = filterChoices[1].length === 0 || exercise.equipment.some(eq => filterChoices[1].includes(eq));
+        const categoryMatch = filterChoices[1].length === 0 || filterChoices[1].includes(exercise.type);
         return bodyPartMatch && categoryMatch;
     });
-    
-
 }

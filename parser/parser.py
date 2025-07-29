@@ -57,7 +57,7 @@ def get_page_information(soup: BeautifulSoup) -> dict:
     for direction in directions: 
         directionArr.append(direction.text.strip())
     info['directions'] = directionArr
-    info['type'] = soup.find_all("header")[1].find("span").text.split(", ")[0].strip()
+    info['type'] = soup.find_all("header")[1].find("span").text.split(", ")[1].strip()
     info['image_path'] = f"{info['name'].replace(' ', '_').lower()}.jpg"
     return info
 
@@ -69,17 +69,17 @@ def write_to_csv(index, data: dict, file_path: str) -> None:
         data['id'] = index
         writer.writerow(data)
 if __name__ == "__main__":
-    exercise_links = get_all_exercise(base_url)
-    # with open('./exercises.csv', 'w', newline='', encoding='utf-8') as file:
-    #     fieldnames = ['name', 'level', 'target', 'equipment', 'directions', 'type', "image_path"]
-    #     writer = csv.DictWriter(file, fieldnames=fieldnames)
-    #     writer.writeheader() 
-    for index, link in enumerate(exercise_links): 
-        resp = requests.get(link)
-        resp.raise_for_status() 
-        soup = BeautifulSoup(resp.text, 'html.parser')
-        page_info = get_page_information(soup)
-        write_to_csv(index, page_info, './exercises.csv')
+    # exercise_links = get_all_exercise(base_url)
+    with open('./assets/exercises.csv', 'a', newline='', encoding='utf-8') as file:
+        fieldnames = ['id', 'name', 'level', 'target', 'equipment', 'directions', 'type', "image_path"]
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader() 
+    # for index, link in enumerate(exercise_links): 
+    #     resp = requests.get(link)
+    #     resp.raise_for_status() 
+    #     soup = BeautifulSoup(resp.text, 'html.parser')
+    #     page_info = get_page_information(soup)
+       
         # download_images_from_page(soup, link, './downloaded_images', page_info['image_path'])
     # resp = requests.get(url)
     # resp.raise_for_status() 

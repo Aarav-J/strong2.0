@@ -10,7 +10,7 @@ const ExercisePreview = ({exercise}: {exercise: ExerciseType}) => {
     }
 
     useEffect(() => { 
-        console.log("Exercise " + JSON.stringify(exercise))
+        // console.log("Exercise " + JSON.stringify(exercise))
     }, [exercise])
 
     const imageName = exercise.image_path?.replace(".jpg", "_thumbnail.png") || "";

@@ -1,10 +1,11 @@
+import ExerciseInfo from '@/components/ExerciseList/ExerciseInfo';
 import ExercisePreview from '@/components/ExerciseList/ExercisePreview';
 import { Exercise as ExerciseType } from '@/types';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
 import * as Papa from 'papaparse';
 import { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 // import { FlatList } from 'react-native-reanimated/lib/typescript/Animated';
 import Filter from '@/components/ExerciseList/Filter';
 import { filterExercises, fuzzySearch } from '@/utils/utils';
@@ -15,7 +16,8 @@ const Exercises = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(false);
     const [filterChoices, setFilterChoices] = useState<string[][]>([[], []]); 
-    
+    const [selectedId, setSelectedId] = useState<number>(0);
+    const [showModal, setShowModal] = useState(false);
     const loadCsv = async () => {
         try {
             setLoading(true);
@@ -49,7 +51,11 @@ const Exercises = () => {
     }, []);
 
     const renderExercise = ({item, index}: {item: ExerciseType, index: number}) => {
-        return <ExercisePreview key={index} exercise={item} />;
+        return (
+            <Pressable onPress={() => {setSelectedId(index); setShowModal(true);}}>
+                <ExercisePreview key={index} exercise={item} />
+            </Pressable>
+        );
     };
 
     return ( 
@@ -80,6 +86,7 @@ const Exercises = () => {
                     </View>
                 ) : 
                 (
+                    
                     <FlatList
                         data={searchQuery ? fuzzySearch(filterExercises(exerciseData, filterChoices), searchQuery) : filterExercises(exerciseData, filterChoices)}
                         renderItem={renderExercise}
@@ -93,6 +100,7 @@ const Exercises = () => {
                 }
             </View>  
 
+        {showModal && <ExerciseInfo exercise={exerciseData[selectedId]} onClose={() => {setShowModal(false)}}/>}
         </View>
         
         

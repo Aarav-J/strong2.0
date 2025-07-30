@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const imagesDir = path.join(__dirname, '../assets/images');
-const files = fs.readdirSync(imagesDir).filter(file => file.endsWith('_thumbnail.png'));
+const files = fs.readdirSync(imagesDir).filter(file => file.endsWith('_thumbnail.png') || file.endsWith('.jpg'));
 
 const imageMap = files.reduce((acc, file) => {
   const key = file;

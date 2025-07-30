@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-nativ
 // import { PropsWithChildren } from 'react';
 import { useStore } from '@/store';
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 type Props = { 
     handlePressKey: (digit: string) => void  
     handlePressDelete: () => void
@@ -9,6 +10,7 @@ type Props = {
 }
 
 export default function Numpad({handlePressKey, handlePressDelete}: Props) {
+    const insets = useSafeAreaInsets();
     const numpadVisible = useStore((state) => state.numpadVisible);
     const activeInputId = useStore((state) => state.activeInputId);
     const setNumpadVisible = useStore((state) => state.setNumpadVisible);
@@ -50,7 +52,12 @@ export default function Numpad({handlePressKey, handlePressDelete}: Props) {
         }
     };
     return ( 
-                <View style={styles.modalContainer}>
+                <View style={[styles.modalContainer, 
+                        // { 
+                        //     bottom: Platform.OS === 'ios' ? insets.bottom : 0,
+                        //     paddingBottom: Platform.OS === 'android' ? insets.bottom : 0
+                        // }
+                ]}>
                     <View style={styles.numpadContainer}>
                         <TouchableOpacity style={styles.numpadNumber} onPress={() => onKeyPress('1')}>
                             <Text style={styles.buttonText}>1</Text>

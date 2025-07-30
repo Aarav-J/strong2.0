@@ -1,14 +1,10 @@
-import Button from "@/components/Button";
-import CompletedModal from "@/components/CompletedModal";
-import Exercise from "@/components/Exercise";
-import Header from "@/components/Header";
-import Numpad from "@/components/Numpad";
-import { useStore } from "@/store";
+import WorkoutModal from "@/components/WorkoutModal";
+import WorkoutTab from "@/components/WorkoutTab";
 import { registerForPushNotificationsAsync } from "@/utils/notifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { useEffect, useState } from "react";
-import { Platform, ScrollView, StyleSheet, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
 Notifications.setNotificationHandler({ 
   handleNotification: async () => ({ 
@@ -17,74 +13,80 @@ Notifications.setNotificationHandler({
     shouldShowBanner: true, 
     shouldShowList: true, 
   })
-})
+});
+
+
 export default function Index() {
-  const [visible, setVisible] = useState(false);
-  const workoutDetails = useStore((state) => state.workoutDetails);
-  const numpadVisible = useStore((state) => state.numpadVisible);
-  const [expoPushToken, setExpoPushToken] = useState<string>('');
-  const [channels, setChannels] = useState<Notifications.NotificationChannel[]>([]);
-  const [notification, setNotification] = useState<Notifications.Notification | undefined>(undefined);
-  const restCompletedVisible = useStore((state) => state.restCompletedVisible);
-  const setRestCompletedVisible = useStore((state) => state.setRestCompletedVisible);
-  useEffect(() => {
-    AsyncStorage.setItem("startDate", new Date().toISOString());
-    registerForPushNotificationsAsync().then(token => token && setExpoPushToken(token));
+  const [workoutModalVisible, setWorkoutModalVisible] = useState(false);
+  const [isWorkoutActive, setIsWorkoutActive] = useState(false);
+  const workoutName = "Midday Workout";
 
-    if (Platform.OS === 'android') {
-      Notifications.getNotificationChannelsAsync().then(value => setChannels(value ?? []));
+  const startWorkout = () => {
+    setIsWorkoutActive(true);
+    setWorkoutModalVisible(true);
+  };
+
+  const endWorkout = () => {
+    setIsWorkoutActive(false);
+    setWorkoutModalVisible(false);
+  };
+   useEffect(() => {
+    
+      AsyncStorage.setItem("startDate", new Date().toISOString());
+      registerForPushNotificationsAsync();
+
+      if (Platform.OS === 'android') {
+        Notifications.getNotificationChannelsAsync();
+      }
+      
+      const notificationListener = Notifications.addNotificationReceivedListener(notification => {
+        console.log(notification);
+      });
+
+      const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
+        console.log(response);
+      });
+
+      return () => {
+        notificationListener.remove();
+        responseListener.remove();
+      
     }
-    const notificationListener = Notifications.addNotificationReceivedListener(notification => {
-      setNotification(notification);
-    });
-
-    const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log(response);
-    });
-
-    return () => {
-      notificationListener.remove();
-      responseListener.remove();
-    };
   }, []);
 
   return (
     <View style={styles.container}>
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          // Add bottom padding when numpad is visible to prevent content from being hidden
-          numpadVisible && { paddingBottom: 300 }
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        <Header 
-          title="Midday Workout" 
-          // startDate={startDte} 
-        />
-        <View style={styles.exerciseContainer}>
-          {workoutDetails.map((exercise, index) => (
-            <Exercise key={index} exerciseDetails={exercise}/>
-          ))}
-          <View style={styles.addExerciseContainer}>
-            <Button 
-              title="Add Exercise"
-              onPress={() => console.log('Add Exercise Pressed')}
-              backgroundColor="#2D5472"
-              color="#34A6FB"
-            />
+      {/* Placeholder content */}
+      <View style={styles.content}>
+        <Text style={styles.title}>AaravStrong</Text>
+        {/* <Text style={styles.subtitle}>Your fitness journey starts here</Text> */}
+        
+        {!isWorkoutActive && (
+          <Pressable style={styles.startButton} onPress={startWorkout}>
+            <Text style={styles.startButtonText}>Start Workout</Text>
+          </Pressable>
+        )}
 
-          </View>
-        </View>
-      </ScrollView>
-      
-      {/* Numpad positioned absolutely at bottom */}
-      <Numpad 
-        handlePressKey={(digit: string) => console.log(`Pressed ${digit}`)} 
-        handlePressDelete={() => console.log('Delete pressed')}
+        {/* {isWorkoutActive && (
+          <Pressable style={styles.endButton} onPress={endWorkout}>
+            <Text style={styles.endButtonText}>End Workout</Text>
+          </Pressable>
+        )} */}
+      </View>
+
+      {/* Workout Tab */}
+      <WorkoutTab
+        workoutName={workoutName}
+        onPress={() => setWorkoutModalVisible(true)}
+        isActive={isWorkoutActive}
       />
-    <CompletedModal visible={restCompletedVisible} setVisible={setRestCompletedVisible}/>
+
+      {/* Workout Modal */}
+      <WorkoutModal
+        visible={workoutModalVisible}
+        onClose={() => setWorkoutModalVisible(false)}
+        workoutName={workoutName}
+      />
     </View>
   );
 }
@@ -94,34 +96,46 @@ const styles = StyleSheet.create({
     backgroundColor: "#111113",
     flex: 1,
   },
-  scrollView: {
+  content: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
   },
-  scrollContent: {
-    flexGrow: 1,
-    paddingVertical: 60,
-    gap: 30,
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+    marginBottom: 12,
   },
-  exerciseContainer: { 
-    flexDirection: "column",
-    gap: 20,
-    // paddingHorizontal: 20,
-  },
-  addExerciseContainer: {
-    marginTop: 20,
-  },
-  text: { 
-    fontSize: 20, 
-    color: "white"
-  }, 
-  input: {
-    borderWidth: 1,
-    borderColor: '#888',
-    padding: 12,
-    borderRadius: 8,
+  subtitle: {
     fontSize: 18,
-    color: "white",
-    height: 50,
-    backgroundColor: '#222',
+    color: '#999',
+    textAlign: 'center',
+    marginBottom: 40,
+  },
+  startButton: {
+    backgroundColor: '#34A6FB',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  startButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'white',
+  },
+  endButton: {
+    backgroundColor: '#EF4444',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 12,
+  },
+  endButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'white',
   },
 });

@@ -3,7 +3,14 @@ import { View } from 'react-native';
 
 export default function TabLayout() {
   return (
-    <Tabs>
+    <Tabs screenOptions={{
+                // ... your existing screen options
+                tabBarStyle: {
+                    // ... your existing tab bar styles
+                    zIndex: -100, // Lower zIndex for tab bar
+                    // elevation: 1 // Lower elevation for Android
+                }
+            }}>
       <Tabs.Screen
         name="index"
         options={{

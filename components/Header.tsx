@@ -2,6 +2,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import ElapsedTime from "./ElapsedTime";
 type props = { 
     title: string; 
     
@@ -18,15 +19,6 @@ export default function Header({title}: props) {
             const startDateTime = new Date(startDate);
             setDate(startDateTime);
             
-            // Start the interval immediately after setting the date
-            const interval = setInterval(() => { 
-                const now = new Date();
-                const diff = Math.floor((now.getTime() - startDateTime.getTime()) / 1000);
-                setSecondsRunning(diff);
-            }, 1000);
-            
-            // Clean up function
-            return () => clearInterval(interval);
         }
         });
     }, []);
@@ -50,7 +42,7 @@ export default function Header({title}: props) {
                 </View>
                 <View style={styles.infoContainer}>
                     <FontAwesome name="clock-o" size={16} color="white" />
-                    <Text style={styles.time}>{formatTime(secondsRunning || 0)}</Text>
+                    <ElapsedTime textStyles={styles.time} />
                 </View>
             {/* </View> */}
         </View>

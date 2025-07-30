@@ -1,7 +1,7 @@
 import { Exercise as ExerciseType } from "@/types";
 import { AntDesign } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { imageMap } from "./imageMap";
 
 const ExerciseInfo = ({exercise, onClose}: {exercise: ExerciseType, onClose: () => void}) => { 
@@ -33,7 +33,7 @@ const ExerciseInfo = ({exercise, onClose}: {exercise: ExerciseType, onClose: () 
     }
 
     return (
-        <View style={styles.modalContainer}>
+        <Modal style={styles.modalContainer}>
             <View style={styles.container}>
                 <View style={styles.headerContainer}>
                     <Pressable onPress={onClose} style={styles.closeButton}>
@@ -84,7 +84,7 @@ const ExerciseInfo = ({exercise, onClose}: {exercise: ExerciseType, onClose: () 
                     </Pressable>
                 </View> */}
             </View>
-        </View>
+        </Modal>
     );
 }
 

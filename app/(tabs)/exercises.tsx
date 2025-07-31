@@ -53,7 +53,7 @@ const Exercises = () => {
     const renderExercise = ({item, index}: {item: ExerciseType, index: number}) => {
         return (
             <Pressable onPress={() => {setSelectedId(index); setShowModal(true);}}>
-                <ExercisePreview key={index} exercise={item} />
+                <ExercisePreview key={index} exercise={item} isModal={false}/>
             </Pressable>
         );
     };

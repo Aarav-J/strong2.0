@@ -1,4 +1,3 @@
-import AddExerciseModal from "@/components/AddExerciseModal";
 import Button from "@/components/Button";
 import CompletedModal from "@/components/CompletedModal";
 import Exercise from "@/components/Exercise";
@@ -6,9 +5,10 @@ import Header from "@/components/Header";
 import Numpad from "@/components/Numpad";
 import { useStore } from "@/store";
 import { Ionicons } from '@expo/vector-icons';
-
+import { useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AddExerciseModal from "./AddExerciseModal";
 
 
 
@@ -22,6 +22,7 @@ export default function WorkoutModal({ visible, onClose, workoutName }: Props) {
   const workoutDetails = useStore((state) => state.workoutDetails);
   const numpadVisible = useStore((state) => state.numpadVisible);
   const restCompletedVisible = useStore((state) => state.restCompletedVisible);
+  const [addExerciseModalVisible, setAddExerciseModalVisible] = useState(false);
   const setRestCompletedVisible = useStore((state) => state.setRestCompletedVisible);
   const insets = useSafeAreaInsets();
 
@@ -61,7 +62,7 @@ export default function WorkoutModal({ visible, onClose, workoutName }: Props) {
             <View style={styles.addExerciseContainer}>
               <Button 
                 title="Add Exercise"
-                onPress={() => console.log('Add Exercise Pressed')}
+                onPress={() => setAddExerciseModalVisible(true)}
                 backgroundColor="#2D5472"
                 color="#34A6FB"
               />
@@ -74,7 +75,7 @@ export default function WorkoutModal({ visible, onClose, workoutName }: Props) {
           handlePressDelete={() => console.log('Delete pressed')}
         />
         <CompletedModal visible={restCompletedVisible} setVisible={setRestCompletedVisible}/>
-        <AddExerciseModal />
+        <AddExerciseModal addExerciseModalVisible={addExerciseModalVisible} setAddExerciseModalVisible={setAddExerciseModalVisible} />
       </View>
     </Modal>
   );
@@ -84,6 +85,8 @@ const styles = StyleSheet.create({
   container: { 
     backgroundColor: "#111113",
     flex: 1,
+    width: '100%',
+    height: '100%',
   },
   modalHeader: {
     flexDirection: 'row',

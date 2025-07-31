@@ -1,9 +1,9 @@
 import { Exercise as ExerciseType } from "@/types";
 import { useEffect } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { imageMap } from "./imageMap";
 
-const ExercisePreview = ({exercise}: {exercise: ExerciseType}) => {
+const ExercisePreview = ({exercise, isModal, setSelectedId, showModal}: {exercise: ExerciseType, isModal: boolean, setSelectedId?: (id: number) => void, showModal?: () => void}) => {
     // Add early return if exercise is undefined
     if (!exercise) {
         return null;
@@ -17,7 +17,7 @@ const ExercisePreview = ({exercise}: {exercise: ExerciseType}) => {
     const imageSource = imageMap[imageName];
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container]}>
             {imageSource ? (
                 <Image
                     source={imageSource}
@@ -25,13 +25,33 @@ const ExercisePreview = ({exercise}: {exercise: ExerciseType}) => {
                 />
             ) : (
                 <View style={[styles.image, styles.placeholderImage]}>
-                    <Text style={styles.placeholderText}>No Image</Text>
+                    <Text style={[styles.placeholderText, isModal ? {fontSize: 12} : {fontSize: 14}]}>No Image</Text>
                 </View>
             )}
-            <View style={styles.textContainer}>
+            {isModal ? 
+            ( 
+            <View style={[styles.detailContainer]}>
+               <View style={[styles.textContainer, {width: '70%'} ]}>
+                    <Text style={styles.name}>{exercise.name || 'Unknown Exercise'}</Text>
+                    <Text style={styles.details}>{exercise.target || 'No target specified'}</Text>
+                </View>
+                <Pressable
+                    onPress={() => {
+                        if (setSelectedId) setSelectedId(exercise.id);
+                        if (showModal) showModal();
+                    }}
+                    style={styles.questionButton}>
+                        <Text style={styles.questionButtonText}>?</Text>
+                </Pressable>
+            </View> 
+            ): ( 
+                <View style={[styles.textContainer, {marginLeft: 10}]}>
                 <Text style={styles.name}>{exercise.name || 'Unknown Exercise'}</Text>
                 <Text style={styles.details}>{exercise.target || 'No target specified'}</Text>
             </View>
+            )}
+            
+            
         </View>
     )
 }
@@ -55,6 +75,13 @@ const styles = StyleSheet.create({
         color: '#666',
         fontSize: 12,
     },
+    detailContainer: { 
+        flexDirection: "row", 
+        justifyContent: "space-between",
+        alignItems: "center",
+        flex: 1, // Use flex instead of width: "100%"
+        marginLeft: 10, // Move margin here from textContainer
+    },
     container: { 
         flexDirection: "row", 
         width: "100%", 
@@ -65,12 +92,11 @@ const styles = StyleSheet.create({
     textContainer: { 
         flexDirection: "column",
         justifyContent: "center",
-        marginLeft: 10,
-        width: "70%",
-        alignItems: "flex-start", // Changed from center for better alignment
+        // flex: 1, // Use flex to take remaining space
+        alignItems: "flex-start",
     },
     name: {
-        fontSize: 16,
+        // fontSize: 16,
         fontWeight: "bold",
         color: "#ffffff"
     },
@@ -78,5 +104,18 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: "#666",
         marginTop: 4,
+    },
+    questionButton: {
+        padding: 12,
+        backgroundColor: '#34A6FB',
+        borderRadius: 8,
+        minWidth: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    questionButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 })

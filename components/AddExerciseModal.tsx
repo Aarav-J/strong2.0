@@ -1,3 +1,4 @@
+import { useStore } from '@/store';
 import { Exercise as ExerciseType } from '@/types';
 import { filterExercises, fuzzySearch } from '@/utils/utils';
 import { AntDesign } from '@expo/vector-icons';
@@ -18,7 +19,9 @@ const AddExerciseModal = ({addExerciseModalVisible, setAddExerciseModalVisible}:
     const [selectedInfoExerciseId, setSelectedInfoExerciseId] = useState<number | null>(null);
     const [isActive, setIsActive] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [filterChoices, setFilterChoices] = useState<string[][]>([[], []]); 
+    const [filterChoices, setFilterChoices] = useState<string[][]>([[], []]);   
+    const addWorkout = useStore((state) => state.addWorkout);
+    const [chosenExercises, setChosenExercises] = useState<number[]>([]);
 
     const loadCsv = async () => {
         try {
@@ -53,9 +56,15 @@ const AddExerciseModal = ({addExerciseModalVisible, setAddExerciseModalVisible}:
             <Pressable onPress={() => {
                 console.log("Selected Exercise: ", item.name);
                 // setSelectedInfoExerciseId(item.id);
-                setAddExerciseModalVisible(false);
-            }}>
-                <ExercisePreview exercise={item} isModal={true} setSelectedInfoExerciseId={setSelectedInfoExerciseId} hideExerciseModal={() => setAddExerciseModalVisible(false)} />
+                if(chosenExercises.includes(item.id)) {
+                    setChosenExercises(prev => prev.filter(id => id !== item.id));
+                }else { 
+                    setChosenExercises(prev => [...prev, item.id]);
+                }
+                
+                // setAddExerciseModalVisible(false);
+            }} style={[chosenExercises.includes(item.id) && {backgroundColor: '#257aba90'}]}>
+                <ExercisePreview exercise={item} isModal={true} setSelectedInfoExerciseId={setSelectedInfoExerciseId} hideExerciseModal={() => setAddExerciseModalVisible(false)} chosenExercises={chosenExercises} setChosenExercises={setChosenExercises} />
             </Pressable>
         );
     };
@@ -75,7 +84,16 @@ const AddExerciseModal = ({addExerciseModalVisible, setAddExerciseModalVisible}:
                                 <AntDesign name="close" size={24} color="white" />
                             </Pressable>
                             <Text style={styles.modalTitle}>Add Exercise</Text>
-                            
+                            <Pressable onPress={() => {
+                                if (chosenExercises.length > 0) {
+                                    chosenExercises.forEach(exerciseId => {
+                                        addWorkout(exerciseData[exerciseId])
+                                    })
+                                }
+                                setAddExerciseModalVisible(false);
+                            }}>
+                                <Text style={[styles.addButtonText, chosenExercises.length > 1 && {color: '#34A6FB'}]}>Add</Text>
+                            </Pressable>
                         </View>
                         <View style={styles.searchContainer}>
                             <TextInput
@@ -169,7 +187,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    
+    addButtonText: { 
+        color: 'grey', 
+        fontSize: 16,
+        fontWeight: "light",
+    },
+
     modalTitle: {
         fontSize: 18,
         fontWeight: 'bold',
@@ -193,8 +216,8 @@ const styles = StyleSheet.create({
         width: "100%",
     },
     listContent: {
-        paddingHorizontal: 20,
-        paddingVertical: 10,
+        // paddingHorizontal: 20,
+        // paddingVertical: 10,
     },
     loadingContainer: {
         flex: 1,
@@ -211,7 +234,7 @@ const styles = StyleSheet.create({
     separator: {
         height: 1,
         backgroundColor: '#333',
-        marginVertical: 10,
+        // marginVertical: 10,
     },
     searchInput: { 
         width: '100%',

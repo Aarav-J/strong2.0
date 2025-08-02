@@ -25,6 +25,7 @@ type StoreState = {
     resetRestTimer: (parentKey: number, setKey: number) => void;
     selectedInfoExercise: number | null; 
     setSelectedInfoExercise: (id: number | null) => void;
+    addWorkout: (newWorkout: Exercise) => void;
 };
 
 export const useStore = create<StoreState>((set, get) => ({
@@ -73,7 +74,7 @@ export const useStore = create<StoreState>((set, get) => ({
             workoutIndex: newWorkout.id,
             name: newWorkout.name,
             sets: [ 
-
+                { key: 0, type: "set", rep: 0, weight: 0, completed: false, rest: {duration: 120, completed: false}},
             ]
 
         })
@@ -96,6 +97,7 @@ export const useStore = create<StoreState>((set, get) => ({
     addSet: (key: number) => set((state) => { 
         let tempDetails = [...state.workoutDetails]
         const maxKey = state.workoutDetails[key].sets.length 
+        
         const lastSet = tempDetails[key].sets[maxKey-1]
         const newSet = {key: maxKey, type: "set" as const, rep: lastSet.rep, weight: lastSet.weight, completed: false, rest: {duration: 120, completed: false}}
         tempDetails[key].sets.push(newSet)

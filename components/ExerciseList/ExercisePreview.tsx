@@ -22,8 +22,8 @@ const ExercisePreview = ({exercise, isModal, setSelectedInfoExerciseId, hideExer
     const imageName = exercise.image_path?.replace(".jpg", "_thumbnail.png") || "";
     const imageSource = imageMap[imageName];
 
-    return (
-        <Pressable onPress={() => { 
+    return isModal ? (
+            <Pressable onPress={() => { 
             if (setChosenExercises && chosenExercises) {
                 let tempChosenExercises = [...chosenExercises];
                 if(chosenExercises.includes(exercise.id)) {
@@ -77,9 +77,52 @@ const ExercisePreview = ({exercise, isModal, setSelectedInfoExerciseId, hideExer
                 
             </View>
         </Pressable>
-    )
-}
-
+        ) : ( 
+            <View style={[styles.container, chosenExercises?.includes(exercise.id) && styles.selectedContainer]} >
+                {imageSource ? (
+                    <Image
+                        source={imageSource}
+                        style={styles.image}
+                    />
+                ) : (
+                    <View style={[styles.image, styles.placeholderImage]}>
+                        <Text style={[styles.placeholderText, isModal ? {fontSize: 12} : {fontSize: 14}]}>No Image</Text>
+                    </View>
+                )}
+                {isModal ? 
+                ( 
+                <View style={[styles.detailContainer]}>
+                <View style={[styles.textContainer, {width: '70%'} ]}>
+                        <Text style={styles.name}>{exercise.name || 'Unknown Exercise'}</Text>
+                        <Text style={styles.details}>{exercise.target || 'No target specified'}</Text>
+                    </View>
+                    {chosenExercises && chosenExercises?.includes(exercise.id) ? (
+                        <FontAwesome name="check" size={24} color="#34A6FB" />
+                    ) : (
+                        
+                        <Pressable
+                        onPress={() => {
+                            if (setSelectedInfoExerciseId) setSelectedInfoExerciseId(exercise.id);
+                            if (hideExerciseModal) hideExerciseModal();
+                        }}
+                        style={styles.questionButton}>
+                            <Text style={styles.questionButtonText}>?</Text>
+                    </Pressable>
+                    )}
+                    
+                </View> 
+                ): ( 
+                    <View style={[styles.textContainer, {marginLeft: 10}]}>
+                    <Text style={styles.name}>{exercise.name || 'Unknown Exercise'}</Text>
+                    <Text style={styles.details}>{exercise.target || 'No target specified'}</Text>
+                </View>
+                )}
+                
+                
+            </View>
+        
+        )}
+        
 export default ExercisePreview;
 
 

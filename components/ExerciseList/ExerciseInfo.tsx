@@ -7,6 +7,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { imageMap } from "./imageMap";
 const ExerciseInfo = ({exerciseId, setSelectedInfoExercise, setAddExerciseModalVisible}: {exerciseId: number | null, setSelectedInfoExercise: (id: number | null) => void, setAddExerciseModalVisible?: (visible: boolean) => void}) => { 
     if (!exerciseId) {
+        console.log("No exercise ID provided");
         return null;
     } 
     const [exercise, setExercise] = useState<Exercise | null>(null);

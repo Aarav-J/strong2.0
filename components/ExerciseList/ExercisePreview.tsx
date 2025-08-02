@@ -1,17 +1,14 @@
 import { Exercise as ExerciseType } from "@/types";
-import { useEffect } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { imageMap } from "./imageMap";
 
-const ExercisePreview = ({exercise, isModal, setSelectedId, showModal}: {exercise: ExerciseType, isModal: boolean, setSelectedId?: (id: number) => void, showModal?: () => void}) => {
+const ExercisePreview = ({exercise, isModal, setSelectedInfoExerciseId, hideExerciseModal}: {exercise: ExerciseType, isModal: boolean, setSelectedInfoExerciseId?: (id: number) => void, hideExerciseModal?: () => void}) => {
     // Add early return if exercise is undefined
     if (!exercise) {
         return null;
     }
 
-    useEffect(() => { 
-        // console.log("Exercise " + JSON.stringify(exercise))
-    }, [exercise])
+
 
     const imageName = exercise.image_path?.replace(".jpg", "_thumbnail.png") || "";
     const imageSource = imageMap[imageName];
@@ -37,8 +34,8 @@ const ExercisePreview = ({exercise, isModal, setSelectedId, showModal}: {exercis
                 </View>
                 <Pressable
                     onPress={() => {
-                        if (setSelectedId) setSelectedId(exercise.id);
-                        if (showModal) showModal();
+                        if (setSelectedInfoExerciseId) setSelectedInfoExerciseId(exercise.id);
+                        if (hideExerciseModal) hideExerciseModal();
                     }}
                     style={styles.questionButton}>
                         <Text style={styles.questionButtonText}>?</Text>

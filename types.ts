@@ -4,6 +4,7 @@ export type ExerciseSet =
 
 export type ExerciseDetail = {
     key: number;
+    workoutIndex: number; // Index of the workout in the list
     name: string;
     sets: ExerciseSet[];
 };

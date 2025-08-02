@@ -1,5 +1,8 @@
 import { Exercise } from "@/types";
+import { Asset } from 'expo-asset';
+import * as FileSystem from 'expo-file-system';
 import Fuse from 'fuse.js';
+import Papa from 'papaparse';
 
 export const compareArrays = (array1: any[], array2: any[])  => { 
     if(array1.length == array2.length) { 
@@ -38,4 +41,30 @@ export const filterExercises = (data: Exercise[], filterChoices: string[][]) => 
         const categoryMatch = filterChoices[1].length === 0 || filterChoices[1].includes(exercise.type);
         return bodyPartMatch && categoryMatch;
     });
+}
+
+
+export const getExercise = async (exerciseId: number) => { 
+    try {
+                // setLoading(true);
+                
+                const asset = Asset.fromModule(require('../assets/exercises.csv'));
+                await asset.downloadAsync();
+                
+                const csvContent = await FileSystem.readAsStringAsync(asset.localUri || asset.uri);
+                
+                const result = Papa.parse(csvContent, {
+                    header: true,
+                    skipEmptyLines: true,
+                    delimiter: ',',
+                });
+                
+                const exerciseData = result.data as Exercise[];
+                return exerciseData.find(exercise => exercise.id === exerciseId) || null;
+
+            } catch (error) {
+                console.error('Error loading CSV:', error);
+            } finally {
+                // setLoading(false);
+            }
 }

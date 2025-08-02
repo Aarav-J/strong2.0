@@ -1,18 +1,24 @@
-import { Exercise as ExerciseType } from "@/types";
+import { Exercise } from "@/types";
+import { getExercise } from "@/utils/utils";
 import { AntDesign } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { imageMap } from "./imageMap";
-
-const ExerciseInfo = ({exercise, onClose}: {exercise: ExerciseType, onClose: () => void}) => { 
-    if (!exercise) {
+const ExerciseInfo = ({exerciseId, setSelectedInfoExercise, setAddExerciseModalVisible}: {exerciseId: number | null, setSelectedInfoExercise: (id: number | null) => void, setAddExerciseModalVisible?: (visible: boolean) => void}) => { 
+    if (!exerciseId) {
         return null;
-    }
-
+    } 
+    const [exercise, setExercise] = useState<Exercise | null>(null);
+    useEffect(() => { 
+        getExercise(exerciseId).then((data) => { 
+            setExercise(data || null);
+        });
+    }, [exerciseId])
     // Function to render equipment items
     const renderEquipmentItems = () => {
-        console.log(typeof(exercise.equipment));
-        if (!exercise.equipment) return "No equipment needed";
+        console.log("boop: " + typeof(exercise?.equipment));
+        if (!exercise?.equipment) return "No equipment needed";
         const s = "['example 1', 'example2']";
         const matches = [...exercise.equipment.toString().matchAll(/'([^']*)'/g)].map(m => m[1]);
         const equipmentList = Array.isArray(exercise.equipment) 
@@ -25,7 +31,10 @@ const ExerciseInfo = ({exercise, onClose}: {exercise: ExerciseType, onClose: () 
     const generateDirections = () => { 
         // console.log(typeof(exercise.directions));
         // if (!exercise.directions) return "No directions available";
-        return [...exercise.directions.toString().matchAll(/'([^']*)'/g)].map(m => m[1]); 
+        if(exercise) { 
+            return [...exercise.directions.toString().matchAll(/'([^']*)'/g)].map(m => m[1]); 
+        }
+        
         // return exercise.directions;
         // console.log("b " + directionArr);
         // console.log("l " + typeof(directionArr));
@@ -33,19 +42,22 @@ const ExerciseInfo = ({exercise, onClose}: {exercise: ExerciseType, onClose: () 
     }
 
     return (
-        <Modal style={styles.modalContainer}>
+        <View style={styles.modalContainer}>
             <View style={styles.container}>
                 <View style={styles.headerContainer}>
-                    <Pressable onPress={onClose} style={styles.closeButton}>
+                    <Pressable onPress={() => {
+                        setSelectedInfoExercise(null)
+                        if (setAddExerciseModalVisible) setAddExerciseModalVisible(true);
+                        }} style={styles.closeButton}>
                         <AntDesign name="close" size={24} color="white" />
                     </Pressable>
-                    <Text style={styles.title}>{exercise.name}</Text>
+                    <Text style={styles.title}>{exercise?.name}</Text>
                     <View style={styles.placeholder} />
                 </View>
 
                 <ScrollView contentContainerStyle={styles.scrollContent}>
                     <Image 
-                        source={imageMap[exercise.image_path]} 
+                        source={imageMap[exercise?.image_path || "ab_wheel_rollout.jpg"]} 
                         contentFit="contain" 
                         style={styles.exerciseImage} 
                     />
@@ -54,7 +66,7 @@ const ExerciseInfo = ({exercise, onClose}: {exercise: ExerciseType, onClose: () 
                     <View style={styles.infoSection}>
                         <Text style={styles.sectionTitle}>Target Muscle</Text>
                         <View style={styles.infoContainer}>
-                            <Text style={styles.infoText}>{exercise.target}</Text>
+                            <Text style={styles.infoText}>{exercise?.target}</Text>
                         </View>
                     </View>
 
@@ -70,7 +82,7 @@ const ExerciseInfo = ({exercise, onClose}: {exercise: ExerciseType, onClose: () 
                     <View style={styles.infoSection}>
                         <Text style={styles.sectionTitle}>Instructions</Text>
                         <View style={styles.infoContainer}>
-                            {generateDirections().map((direction, index) => (
+                            {exercise && generateDirections()?.map((direction, index) => (
                                 <Text key={index} style={[styles.infoText, {color: "white"}]}><Text style={{color: "#34A6FB"}}>{index + 1}.</Text> {direction}</Text>
                             ))}
                         </View>
@@ -84,7 +96,7 @@ const ExerciseInfo = ({exercise, onClose}: {exercise: ExerciseType, onClose: () 
                     </Pressable>
                 </View> */}
             </View>
-        </Modal>
+         </View>
     );
 }
 

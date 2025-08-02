@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
-import { ExerciseDetail } from './types';
+import { Exercise, ExerciseDetail } from './types';
 
 type StoreState = {
     activeExercise: number; 
@@ -23,13 +23,16 @@ type StoreState = {
     restCompletedVisible: boolean;
     setRestCompletedVisible: (val: boolean) => void;
     resetRestTimer: (parentKey: number, setKey: number) => void;
+    selectedInfoExercise: number | null; 
+    setSelectedInfoExercise: (id: number | null) => void;
 };
 
 export const useStore = create<StoreState>((set, get) => ({
     workoutDetails: [
         {
             key: 0,
-            name: "Bench Press (Barbell)",
+            workoutIndex: 24, 
+            name: "Bicep Curls",
             sets: [
                 { key: 0, type: "set", rep: 12, weight: 90, completed: false, rest: {duration: 10, completed: false}},
                 // { key: 1, type: "rest", duration: 120, completed: false },
@@ -43,6 +46,8 @@ export const useStore = create<StoreState>((set, get) => ({
     activeExercise: 0, 
     setActiveExercise: () => set((state) => ({activeExercise: state.activeExercise})),
     activeSet: [0,0,0], 
+    setSelectedInfoExercise: (id: number | null) => set((state) => ({selectedInfoExercise: id})),
+    selectedInfoExercise: null, 
     setNext: () => set((state) => {
         const parentKey = state.activeSet[0];
         const key = state.activeSet[1]; 
@@ -60,6 +65,19 @@ export const useStore = create<StoreState>((set, get) => ({
         }
         // Add your logic here using parentKey if needed
         // return {};
+    }),
+    addWorkout: (newWorkout: Exercise) => set((state) => { 
+        let newWorkoutDetails = [...state.workoutDetails];
+        newWorkoutDetails.push({ 
+            key: newWorkoutDetails.length, 
+            workoutIndex: newWorkout.id,
+            name: newWorkout.name,
+            sets: [ 
+
+            ]
+
+        })
+        return {workoutDetails: newWorkoutDetails};
     }),
     setActiveSet: (newActiveSet) => set((state) => ({activeSet: newActiveSet})),
     chosenEditKey: [0,0,0], 

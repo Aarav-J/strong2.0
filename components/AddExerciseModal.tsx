@@ -1,125 +1,132 @@
 import { Exercise as ExerciseType } from '@/types';
 import { filterExercises, fuzzySearch } from '@/utils/utils';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
 import * as Papa from 'papaparse';
 import { useEffect, useState } from "react";
 import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ExerciseInfo from './ExerciseList/ExerciseInfo';
 import ExercisePreview from './ExerciseList/ExercisePreview';
 import Filter from './ExerciseList/Filter';
 
 const AddExerciseModal = ({addExerciseModalVisible, setAddExerciseModalVisible}: {addExerciseModalVisible: boolean, setAddExerciseModalVisible: (visible: boolean) => void}) => { 
-    // const { addExerciseModalVisible, setAddExerciseModalVisible } = useStore();
-    // const [addExerciseContainerVisible, setAddExerciseModalVisible] = useState(true);
     const insets = useSafeAreaInsets();
     const [exerciseData, setExerciseData] = useState<ExerciseType[]>([]);
     const [loading, setLoading] = useState(false);
-    const [selectedId, setSelectedId] = useState<number>(0);
-    const [showModal, setShowModal] = useState(false);
+    const [selectedInfoExerciseId, setSelectedInfoExerciseId] = useState<number | null>(null);
     const [isActive, setIsActive] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [filterChoices, setFilterChoices] = useState<string[][]>([[], []]); // Initialize filter choices
+    const [filterChoices, setFilterChoices] = useState<string[][]>([[], []]); 
+
     const loadCsv = async () => {
-            try {
-                setLoading(true);
-                
-                // Load the CSV asset
-                const asset = Asset.fromModule(require('../assets/exercises.csv'));
-                await asset.downloadAsync();
-                
-                // Read the file content
-                const csvContent = await FileSystem.readAsStringAsync(asset.localUri || asset.uri);
-                
-                // Parse with PapaParse
-                const result = Papa.parse(csvContent, {
-                    header: true,
-                    skipEmptyLines: true,
-                    delimiter: ',',
-                });
-                
-                // console.log('Parsed CSV data:', result.data);
-                setExerciseData(result.data as ExerciseType[]);
-                
-            } catch (error) {
-                console.error('Error loading CSV:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-    
-        useEffect(() => {
-            loadCsv();
-        }, []);
-    
-    const renderExercise = ({item, index}: {item: ExerciseType, index: number}) => {
+        try {
+            setLoading(true);
+            
+            const asset = Asset.fromModule(require('../assets/exercises.csv'));
+            await asset.downloadAsync();
+            
+            const csvContent = await FileSystem.readAsStringAsync(asset.localUri || asset.uri);
+            
+            const result = Papa.parse(csvContent, {
+                header: true,
+                skipEmptyLines: true,
+                delimiter: ',',
+            });
+            
+            setExerciseData(result.data as ExerciseType[]);
+            
+        } catch (error) {
+            console.error('Error loading CSV:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadCsv();
+    }, []);
+
+    const renderExercise = ({item}: {item: ExerciseType}) => {
         return (
-            <Pressable onPress={() => {setSelectedId(index); setShowModal(true);}}>
-                <ExercisePreview key={index} exercise={item} isModal={true} />
+            <Pressable onPress={() => {
+                console.log("Selected Exercise: ", item.name);
+                // setSelectedInfoExerciseId(item.id);
+                setAddExerciseModalVisible(false);
+            }}>
+                <ExercisePreview exercise={item} isModal={true} setSelectedInfoExerciseId={setSelectedInfoExerciseId} hideExerciseModal={() => setAddExerciseModalVisible(false)} />
             </Pressable>
         );
     };
 
     return (
-        <Modal
-            visible={addExerciseModalVisible}
-            transparent={true}
-            animationType="slide"
-            onRequestClose={() => setAddExerciseModalVisible(false)}
-        >
-            <View style={styles.modalOverlay}>
-                <View style={[styles.container, { paddingTop: insets.top }]}>
-                    <View style={styles.headerContainer}>
-                        <Pressable 
-                            style={styles.closeButton}
-                            onPress={() => setAddExerciseModalVisible(false)}
-                        >
-                            <Ionicons name="close" size={20} color="white" />
-                        </Pressable>
-                        <Text style={styles.modalTitle}>Add Exercise</Text>
-                        {/* <View style={styles.placeholder} /> */}
-                    </View>
-
-                    <View style={styles.searchContainer}>
-                        <TextInput
-                            style={[styles.searchInput, isActive && styles.activeInput]}
-                            placeholder="Search exercises..."
-                            returnKeyType="done"
-                            placeholderTextColor="#666"
-                            onFocus={() => setIsActive(true)}
-                            onBlur={() => setIsActive(false)}
-                            value={searchQuery}
-                            onChangeText={(text) => setSearchQuery(text)}
-                        />
-                        <Filter filterChoices={filterChoices} setFilterChoices={setFilterChoices} />
-                        <Text style={styles.text}>
-                            Loaded {exerciseData.length} exercises
-                        </Text>
-                    </View>
-                           
-                    <View style={styles.listContainer}>
-                        {loading ? (
-                            <View style={styles.loadingContainer}>
-                                <Text style={styles.text}>Loading exercises...</Text>
-                            </View>
-                        ) : (
-                            <FlatList
-                                data={searchQuery ? fuzzySearch(filterExercises(exerciseData, filterChoices), searchQuery) : filterExercises(exerciseData, filterChoices)}
-                                renderItem={renderExercise}
-                                keyExtractor={(item, index) => `${item.id}`}
-                                showsVerticalScrollIndicator={false}
-                                contentContainerStyle={styles.listContent}
-                                ItemSeparatorComponent={() => <View style={styles.separator} />}
+        <>
+            <Modal
+                visible={addExerciseModalVisible}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setAddExerciseModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={[styles.container, { paddingTop: insets.top }]}>
+                        <View style={styles.headerContainer}>
+                            <Pressable onPress={() => setAddExerciseModalVisible(false)} style={styles.closeButton}>
+                                <AntDesign name="close" size={24} color="white" />
+                            </Pressable>
+                            <Text style={styles.modalTitle}>Add Exercise</Text>
+                            
+                        </View>
+                        <View style={styles.searchContainer}>
+                            <TextInput
+                                style={[styles.searchInput, isActive && styles.activeInput]}
+                                placeholder="Search exercises..."
+                                returnKeyType="done"
+                                placeholderTextColor="#666"
+                                onFocus={() => setIsActive(true)}
+                                onBlur={() => setIsActive(false)}
+                                value={searchQuery}
+                                onChangeText={(text) => setSearchQuery(text)}
                             />
-                        )}
+                            <Filter filterChoices={filterChoices} setFilterChoices={setFilterChoices} />
+                            <Text style={styles.text}>
+                                Loaded {exerciseData.length} exercises
+                            </Text>
+                        </View>
+                               
+                        <View style={styles.listContainer}>
+                            {loading ? (
+                                <View style={styles.loadingContainer}>
+                                    <Text style={styles.text}>Loading exercises...</Text>
+                                </View>
+                            ) : (
+                                <FlatList
+                                    data={searchQuery ? fuzzySearch(filterExercises(exerciseData, filterChoices), searchQuery) : filterExercises(exerciseData, filterChoices)}
+                                    renderItem={renderExercise}
+                                    keyExtractor={(item) => `${item.id}`}
+                                    showsVerticalScrollIndicator={false}
+                                    contentContainerStyle={styles.listContent}
+                                    ItemSeparatorComponent={() => <View style={styles.separator} />}
+                                />
+                            )}
+                        </View>
                     </View>
                 </View>
-            </View>
-        </Modal>
+            </Modal>
+
+            {/* Render ExerciseInfo within this component */}
+            {selectedInfoExerciseId && (
+                <ExerciseInfo 
+                    exerciseId={selectedInfoExerciseId} 
+                    setSelectedInfoExercise={setSelectedInfoExerciseId} 
+                    setAddExerciseModalVisible={setAddExerciseModalVisible}
+                />
+            )}
+        </>
     );
 }
 
+// ... rest of your styles remain the same
 
 const styles = StyleSheet.create({
     modalOverlay: {
@@ -162,6 +169,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
+    
     modalTitle: {
         fontSize: 18,
         fontWeight: 'bold',
@@ -170,7 +178,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     placeholder: {
-        width: 40, // Same width as close button
+        width: 40,
     },
     searchContainer: {
         paddingHorizontal: 20,

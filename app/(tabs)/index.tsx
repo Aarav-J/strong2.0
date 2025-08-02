@@ -1,11 +1,11 @@
 import WorkoutModal from "@/components/WorkoutModal";
 import WorkoutTab from "@/components/WorkoutTab";
+import { useStore } from '@/store';
 import { registerForPushNotificationsAsync } from "@/utils/notifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { useEffect, useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
-
 Notifications.setNotificationHandler({ 
   handleNotification: async () => ({ 
     shouldPlaySound: false, 
@@ -20,7 +20,8 @@ export default function Index() {
   const [workoutModalVisible, setWorkoutModalVisible] = useState(false);
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
   const workoutName = "Midday Workout";
-
+  const selectedInfoExercise = useStore((state) => state.selectedInfoExercise);
+  const setSelectedInfoExercise = useStore((state) => state.setSelectedInfoExercise);
   const startWorkout = () => {
     setIsWorkoutActive(true);
     setWorkoutModalVisible(true);
@@ -87,6 +88,7 @@ export default function Index() {
         onClose={() => setWorkoutModalVisible(false)}
         workoutName={workoutName}
       />
+       {/* {selectedInfoExercise && <ExerciseInfo exerciseId={selectedInfoExercise} setSelectedInfoExercise={setSelectedInfoExercise} />} */}
     </View>
   );
 }

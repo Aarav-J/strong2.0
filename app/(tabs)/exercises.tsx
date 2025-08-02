@@ -16,7 +16,7 @@ const Exercises = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(false);
     const [filterChoices, setFilterChoices] = useState<string[][]>([[], []]); 
-    const [selectedId, setSelectedId] = useState<number>(0);
+    const [selectedId, setSelectedId] = useState<number | null>(0);
     const [showModal, setShowModal] = useState(false);
     const loadCsv = async () => {
         try {
@@ -52,7 +52,10 @@ const Exercises = () => {
 
     const renderExercise = ({item, index}: {item: ExerciseType, index: number}) => {
         return (
-            <Pressable onPress={() => {setSelectedId(index); setShowModal(true);}}>
+            <Pressable onPress={() => {
+                setSelectedId(item.id); setShowModal(true);
+                console.log("Selected Exercise: ", item.id);
+            }}>
                 <ExercisePreview key={index} exercise={item} isModal={false}/>
             </Pressable>
         );
@@ -100,7 +103,7 @@ const Exercises = () => {
                 }
             </View>  
 
-        {showModal && <ExerciseInfo exercise={exerciseData[selectedId]} onClose={() => {setShowModal(false)}}/>}
+        {showModal && <ExerciseInfo exerciseId={selectedId} setSelectedInfoExercise={setSelectedId} />}
         </View>
         
         

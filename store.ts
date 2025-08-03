@@ -30,17 +30,6 @@ type StoreState = {
 
 export const useStore = create<StoreState>((set, get) => ({
     workoutDetails: [
-        {
-            key: 0,
-            workoutIndex: 24, 
-            name: "Bicep Curls",
-            sets: [
-                { key: 0, type: "set", rep: 12, weight: 90, completed: false, rest: {duration: 10, completed: false}},
-                // { key: 1, type: "rest", duration: 120, completed: false },
-                { key: 1, type: "set", rep: 10, weight: 100, completed: false, rest: {duration: 120, completed: false} },
-                // { key: 3, type: "rest", duration: 120, completed: false }
-            ]
-        }
     ],
     setWorkoutDetails: (newWorkoutDetails) =>
         set((state) => ({ workoutDetails: newWorkoutDetails })), 
@@ -74,7 +63,7 @@ export const useStore = create<StoreState>((set, get) => ({
             workoutIndex: newWorkout.id,
             name: newWorkout.name,
             sets: [ 
-                { key: 0, type: "set", rep: 0, weight: 0, completed: false, rest: {duration: 120, completed: false}},
+                
             ]
 
         })
@@ -96,11 +85,16 @@ export const useStore = create<StoreState>((set, get) => ({
     }),
     addSet: (key: number) => set((state) => { 
         let tempDetails = [...state.workoutDetails]
-        const maxKey = state.workoutDetails[key].sets.length 
         
-        const lastSet = tempDetails[key].sets[maxKey-1]
-        const newSet = {key: maxKey, type: "set" as const, rep: lastSet.rep, weight: lastSet.weight, completed: false, rest: {duration: 120, completed: false}}
-        tempDetails[key].sets.push(newSet)
+        const maxKey = state.workoutDetails[key].sets.length 
+        if(maxKey === 0) {
+            tempDetails[key].sets.push({key: 0, type: "set", rep: 0, weight: 0, completed: false, rest: {duration: 120, completed: false}})
+        } else { 
+            const lastSet = tempDetails[key].sets[maxKey-1]
+            // const newSet = {key: maxKey, type: "set" as const, rep: lastSet.rep, weight: lastSet.weight, completed: false, rest: {duration: 120, completed: false}}
+            tempDetails[key].sets.push({key: maxKey, type: "set" as const, rep: lastSet.rep, weight: lastSet.weight, completed: false, rest: {duration: 120, completed: false}})
+        }
+        
         return {workoutDetails: tempDetails}
     }), 
     numpadVisible: false, 

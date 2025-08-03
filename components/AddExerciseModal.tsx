@@ -89,10 +89,11 @@ const AddExerciseModal = ({addExerciseModalVisible, setAddExerciseModalVisible}:
                                     chosenExercises.forEach(exerciseId => {
                                         addWorkout(exerciseData[exerciseId])
                                     })
+                                    setChosenExercises([]); // Clear chosen exercises after adding
                                 }
                                 setAddExerciseModalVisible(false);
                             }}>
-                                <Text style={[styles.addButtonText, chosenExercises.length > 1 && {color: '#34A6FB'}]}>Add</Text>
+                                <Text style={[styles.addButtonText, chosenExercises.length >= 1 ? {color: '#34A6FB'} : {color: 'grey'}]}>Add</Text>
                             </Pressable>
                         </View>
                         <View style={styles.searchContainer}>
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     addButtonText: { 
-        color: 'grey', 
+        // color: 'grey', 
         fontSize: 16,
         fontWeight: "light",
     },

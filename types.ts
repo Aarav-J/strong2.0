@@ -5,6 +5,7 @@ export type ExerciseSet =
 export type ExerciseDetail = {
     key: number;
     workoutIndex: number; // Index of the workout in the list
+    templateId?: number; 
     name: string;
     sets: ExerciseSet[];
 };
@@ -18,4 +19,9 @@ export type Exercise = {
     directions: string[], 
     type: string, 
     image_path: string, 
+}
+export type Template = { 
+        key: number; 
+        templateName: string;
+        exercises: { exerciseId: number; sets: number; }[];   
 }

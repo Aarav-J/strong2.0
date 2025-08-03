@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
-import { Exercise, ExerciseDetail } from './types';
+import { Exercise, ExerciseDetail, Template } from './types';
 
 type StoreState = {
     activeExercise: number; 
@@ -26,11 +26,52 @@ type StoreState = {
     selectedInfoExercise: number | null; 
     setSelectedInfoExercise: (id: number | null) => void;
     addWorkout: (newWorkout: Exercise) => void;
+    templates: Template[];
+    setTemplates: (newTemplates: Template[]) => void;
+    setActiveExercise: () => void;
+    exerciseData: Exercise[];
+    setExerciseData: (newExerciseData: Exercise[]) => void;
 };
 
 export const useStore = create<StoreState>((set, get) => ({
     workoutDetails: [
     ],
+    templates: [
+        {
+            key: 0, 
+            templateName: "Push Day", 
+            exercises: [
+                {exerciseId: 83, sets: 3},
+                {exerciseId: 57, sets: 3}, 
+                {exerciseId: 26, sets: 3}, 
+                {exerciseId: 39, sets: 3},
+                {exerciseId: 89, sets: 3},
+                {exerciseId: 36, sets: 3},
+                {exerciseId: 99, sets: 3},
+                {exerciseId: 143, sets: 3}
+
+            ]
+        }, 
+        {
+            key: 1, 
+            templateName: "Push Day", 
+            exercises: [
+                {exerciseId: 83, sets: 3},
+                {exerciseId: 57, sets: 3}, 
+                {exerciseId: 26, sets: 3}, 
+                {exerciseId: 39, sets: 3},
+                {exerciseId: 89, sets: 3},
+                {exerciseId: 36, sets: 3},
+                {exerciseId: 99, sets: 3},
+                {exerciseId: 143, sets: 3}
+
+            ]
+        }
+    ],
+    setTemplates: (newTemplates: Template[]) => set((state) => ({ templates: newTemplates })),
+    exerciseData: [], 
+    setExerciseData: (newExerciseData: Exercise[]) => set((state) => ({ exerciseData: newExerciseData })),
+
     setWorkoutDetails: (newWorkoutDetails) =>
         set((state) => ({ workoutDetails: newWorkoutDetails })), 
     activeExercise: 0, 

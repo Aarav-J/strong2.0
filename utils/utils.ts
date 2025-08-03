@@ -68,3 +68,29 @@ export const getExercise = async (exerciseId: number) => {
                 // setLoading(false);
             }
 }
+
+export const returnExerciseData = async () => { 
+    try {
+                // setLoading(true);
+                
+                const asset = Asset.fromModule(require('../assets/exercises.csv'));
+                await asset.downloadAsync();
+                
+                const csvContent = await FileSystem.readAsStringAsync(asset.localUri || asset.uri);
+                
+                const result = Papa.parse(csvContent, {
+                    header: true,
+                    skipEmptyLines: true,
+                    delimiter: ',',
+                });
+                
+                const exerciseData = result.data as Exercise[];
+                return exerciseData
+                // return exerciseData.find(exercise => exercise.id === exerciseId) || null;
+
+            } catch (error) {
+                console.error('Error loading CSV:', error);
+            } finally {
+                // setLoading(false);
+            }
+}

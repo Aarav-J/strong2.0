@@ -1,7 +1,9 @@
 import WorkoutModal from "@/components/WorkoutModal";
 import WorkoutTab from "@/components/WorkoutTab";
 import { useStore } from '@/store';
+import { Exercise } from "@/types";
 import { registerForPushNotificationsAsync } from "@/utils/notifications";
+import { returnExerciseData } from "@/utils/utils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { useEffect, useState } from "react";
@@ -22,6 +24,8 @@ export default function Index() {
   const workoutName = "Midday Workout";
   const selectedInfoExercise = useStore((state) => state.selectedInfoExercise);
   const setSelectedInfoExercise = useStore((state) => state.setSelectedInfoExercise);
+  const setExerciseData = useStore((state) => state.setExerciseData);
+  const exerciseData = useStore((state) => state.exerciseData);
   const startWorkout = () => {
     setIsWorkoutActive(true);
     setWorkoutModalVisible(true);
@@ -32,7 +36,17 @@ export default function Index() {
     setWorkoutModalVisible(false);
   };
    useEffect(() => {
-    
+      try { 
+        returnExerciseData().then((data: Exercise[] | undefined) => { 
+          if (data) {
+            console.log("fetched")
+            setExerciseData(data);
+          }
+        })
+      } catch (error) {
+        console.error("Error fetching exercise data:", error);
+      }
+      
       AsyncStorage.setItem("startDate", new Date().toISOString());
       registerForPushNotificationsAsync();
 
@@ -54,19 +68,50 @@ export default function Index() {
       
     }
   }, []);
+  const templates = useStore((state) => state.templates);
 
   return (
     <View style={styles.container}>
       {/* Placeholder content */}
       <View style={styles.content}>
         <Text style={styles.title}>AaravStrong</Text>
-        {/* <Text style={styles.subtitle}>Your fitness journey starts here</Text> */}
-        
-        {!isWorkoutActive && (
-          <Pressable style={styles.startButton} onPress={startWorkout}>
-            <Text style={styles.startButtonText}>Start Workout</Text>
-          </Pressable>
-        )}
+        <View style={styles.contentBox}>
+          <Text style={styles.subtitle}>Quick Start</Text>
+          {!isWorkoutActive && (
+            <Pressable style={styles.startButton} onPress={startWorkout}>
+              <Text style={styles.startButtonText}>Start Workout</Text>
+            </Pressable>
+          )}
+        </View>
+        <View style={styles.contentBox}>
+          <Text style={styles.subtitle}>Templates</Text>
+          <View style={{ flexDirection: 'row', width: '100%', flexWrap: 'wrap', justifyContent: "space-between"}}>
+          {templates.map((template) => {
+            return (
+            <Pressable 
+              key={template.key} 
+              style={styles.templateButton} 
+              onPress={() => {
+                // setWorkoutModalVisible(true);
+                // useStore.getState().setTemplate(template);
+              }}
+            >
+              <View>
+                <Text style={styles.templateButtonText}>{template.templateName}</Text>
+                <Text style={styles.templateButtonSubtitle}>
+                  {template.exercises.slice(0, 10).map((exercise, index) => {
+                    const exerciseName = exerciseData[exercise.exerciseId]?.name || 'Unknown Exercise';
+                    return index === 0 ? `${exerciseName}` : `, ${exerciseName}`;
+                  }).join('')}
+                </Text>
+                  {/* </Text> */}
+              </View>
+            </Pressable>
+          )
+          })
+        }
+        </View>
+        </View>
 
         {/* {isWorkoutActive && (
           <Pressable style={styles.endButton} onPress={endWorkout}>
@@ -100,22 +145,53 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    marginTop: 80,
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
     paddingHorizontal: 20,
   },
+  templateButton: { 
+    backgroundColor: 'transparent', 
+    padding: 12, 
+    borderRadius: 8,
+    marginBottom: 10,
+    borderWidth: 1,
+    width: "48%",
+    borderColor: 'silver',
+    // width: '100%',
+  }, 
+  templateButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: 'white',
+
+  }, 
+  templateButtonSubtitle: {
+    fontSize: 14,
+    color: 'grey',
+  },
+  
   title: {
-    fontSize: 32,
+    fontSize: 52,
     fontWeight: 'bold',
     color: 'white',
     textAlign: 'center',
     marginBottom: 12,
   },
   subtitle: {
-    fontSize: 18,
-    color: '#999',
+    fontSize: 36,
+    // color: '#999',
+    fontWeight: '600',
+    color: "white",
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: 15,
+  },
+  contentBox: { 
+    width: "100%",
+    marginBottom: 20,
+    alignItems: "flex-start",
+    justifyContent: "flex-start"
   },
   startButton: {
     backgroundColor: '#34A6FB',
@@ -123,11 +199,14 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     marginBottom: 16,
+    width: '100%',
+    textAlign: 'center',
   },
   startButtonText: {
     fontSize: 18,
     fontWeight: '600',
     color: 'white',
+    textAlign: 'center',
   },
   endButton: {
     backgroundColor: '#EF4444',

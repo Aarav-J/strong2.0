@@ -54,7 +54,7 @@ export const useStore = create<StoreState>((set, get) => ({
         }, 
         {
             key: 1, 
-            templateName: "Push Day", 
+            templateName: "Pull day", 
             exercises: [
                 {exerciseId: 83, sets: 3},
                 {exerciseId: 57, sets: 3}, 
@@ -70,17 +70,19 @@ export const useStore = create<StoreState>((set, get) => ({
     ],
     startWorkout: (name: string, templateId?: number) => set((state) => {
         if(!templateId) { 
+            console.log("No template ID provided, starting a custom workout");
             return {workoutDetails: { 
                 key: 0, 
                 name: name, 
                 exercises: []
             }};
         } else { 
-            const template = state.templates.find(t => t.key === templateId);
+            const template = state.templates[templateId-1];
             if(!template) return state; // If template not found, return current state
             const exercises = template.exercises.map((exercise, index) => ({
                 key: index,
                 workoutIndex: exercise.exerciseId,
+                templateId: templateId-1,
                 name: state.exerciseData[exercise.exerciseId]?.name || "Unknown Exercise",
                 sets: Array.from({ length: exercise.sets }, (_, setIndex) => ({
                     key: setIndex,

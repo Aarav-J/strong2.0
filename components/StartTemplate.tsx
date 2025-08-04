@@ -2,13 +2,14 @@ import { useStore } from '@/store';
 import { Template } from '@/types';
 import { Image } from 'expo-image';
 import React from 'react';
+// import { useStore } from '@/store';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { imageMap } from './ExerciseList/imageMap';
-const StartTemplate = ({template, visible, onClose}: {template: Template, visible: boolean, onClose: () => void}) => { 
+const StartTemplate = ({template, visible, onClose, onBegin}: {template: Template, visible: boolean, onClose: () => void, onBegin: () => void}) => { 
     const exerciseData = useStore((state) => state.exerciseData);
     const insets = useSafeAreaInsets();
-
+    const startWorkout = useStore((state) => state.startWorkout);
     return ( 
         <Modal
             visible={visible}
@@ -49,7 +50,11 @@ const StartTemplate = ({template, visible, onClose}: {template: Template, visibl
                                 </View>
                             );
                         })}
-                        <Pressable style={styles.startButton} onPress={onClose}>
+                        <Pressable style={styles.startButton} onPress={() => { 
+                            console.log(template.key)
+                            startWorkout(template.templateName, template.key+1)
+                            onBegin(); 
+                        }}>
                             <Text style={styles.startButtonText}>Start Workout</Text>
                         </Pressable>
                     </ScrollView>

@@ -141,7 +141,10 @@ export default function Index() {
         visible={workoutModalVisible}
         onClose={() => setWorkoutModalVisible(false)}
       />
-      {selectedTemplate && <StartTemplate template={selectedTemplate} visible={templateModalVisible} onClose={() => setTemplateModalVisible(false)} />}
+      {selectedTemplate && <StartTemplate template={selectedTemplate} visible={templateModalVisible} onClose={() => setTemplateModalVisible(false)} onBegin={() => { 
+        setTemplateModalVisible(false); 
+        setIsWorkoutActive(true);
+      }}/>}
        {/* {selectedInfoExercise && <ExerciseInfo exerciseId={selectedInfoExercise} setSelectedInfoExercise={setSelectedInfoExercise} />} */}
     </View>
   );

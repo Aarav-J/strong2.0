@@ -19,7 +19,7 @@ export default function Checkbox({parentKey, keyNumber}: Props) {
     const resetRestTimer = useStore((state) => state.resetRestTimer)
 
    
-    const currentSet = workoutDetails[parentKey]?.sets[keyNumber]
+    const currentSet = workoutDetails?.exercises?.[parentKey]?.sets[keyNumber]
     const [checked, setChecked] = useState(currentSet?.completed || false)
 
     useEffect(() => {
@@ -46,9 +46,9 @@ export default function Checkbox({parentKey, keyNumber}: Props) {
             
             
             resetRestTimer(parentKey, keyNumber)
-            
-    
-            if(workoutDetails[parentKey].sets[keyNumber].rest.completed) { 
+
+
+            if(workoutDetails?.exercises[parentKey]?.sets[keyNumber]?.rest.completed) { 
                 setCompletedElement([parentKey, keyNumber, 1])
             }
         }

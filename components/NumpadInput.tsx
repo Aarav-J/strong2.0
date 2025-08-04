@@ -70,7 +70,7 @@ export default function NumpadInput({ value, onChangeText, inputId }: Props) {
       style={[
         styles.input,
         isActive && styles.activeInput,
-        workoutDetails[parseInt(exerciseKey)]?.sets[parseInt(setKey)]?.completed && styles.completedInput
+        workoutDetails?.exercises?.[parseInt(exerciseKey)]?.sets[parseInt(setKey)]?.completed && styles.completedInput
       ]}
       caretHidden={false}
       selectionColor="#34A6FB"

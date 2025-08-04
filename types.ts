@@ -8,6 +8,7 @@ export type Workout = {
     templateId?: number; 
     exercises: ExerciseDetail[]; 
 }
+
 export type ExerciseDetail = {
     key: number;
     workoutIndex: number; // Index of the workout in the list

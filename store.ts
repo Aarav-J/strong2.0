@@ -143,6 +143,11 @@ export const useStore = create<StoreState>((set, get) => ({
         return {workoutDetails: newWorkoutDetails};
         
     }),
+    // startWorkout: (name: string, templateId?: number, ) => set((state) => {
+    //     if (templateId == undefined) {
+            
+    //     }
+    // }),
     setActiveSet: (newActiveSet) => set((state) => ({activeSet: newActiveSet})),
     chosenEditKey: [0,0,0], 
     setChosenEditKey: () => set((state) => ({chosenEditKey: state.chosenEditKey})),

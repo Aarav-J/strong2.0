@@ -1,7 +1,8 @@
+import StartTemplate from "@/components/StartTemplate";
 import WorkoutModal from "@/components/WorkoutModal";
 import WorkoutTab from "@/components/WorkoutTab";
 import { useStore } from '@/store';
-import { Exercise } from "@/types";
+import { Exercise, Template } from "@/types";
 import { registerForPushNotificationsAsync } from "@/utils/notifications";
 import { returnExerciseData } from "@/utils/utils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -22,6 +23,8 @@ export default function Index() {
   const [workoutModalVisible, setWorkoutModalVisible] = useState(false);
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
   const workoutName = "Midday Workout";
+  const [templateModalVisible, setTemplateModalVisible] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const selectedInfoExercise = useStore((state) => state.selectedInfoExercise);
   const setSelectedInfoExercise = useStore((state) => state.setSelectedInfoExercise);
   const setExerciseData = useStore((state) => state.setExerciseData);
@@ -92,6 +95,8 @@ export default function Index() {
               key={template.key} 
               style={styles.templateButton} 
               onPress={() => {
+                setSelectedTemplate(template);
+                setTemplateModalVisible(true);
                 // setWorkoutModalVisible(true);
                 // useStore.getState().setTemplate(template);
               }}
@@ -133,6 +138,7 @@ export default function Index() {
         onClose={() => setWorkoutModalVisible(false)}
         workoutName={workoutName}
       />
+      {selectedTemplate && <StartTemplate template={selectedTemplate} visible={templateModalVisible} onClose={() => setTemplateModalVisible(false)} />}
        {/* {selectedInfoExercise && <ExerciseInfo exerciseId={selectedInfoExercise} setSelectedInfoExercise={setSelectedInfoExercise} />} */}
     </View>
   );
@@ -142,6 +148,9 @@ const styles = StyleSheet.create({
   container: { 
     backgroundColor: "#111113",
     flex: 1,
+    width: '100%',
+    height: '100%',
+
   },
   content: {
     flex: 1,

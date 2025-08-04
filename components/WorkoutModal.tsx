@@ -5,7 +5,7 @@ import Header from "@/components/Header";
 import Numpad from "@/components/Numpad";
 import { useStore } from "@/store";
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AddExerciseModal from "./AddExerciseModal";
@@ -25,7 +25,9 @@ export default function WorkoutModal({ visible, onClose, workoutName }: Props) {
   const [addExerciseModalVisible, setAddExerciseModalVisible] = useState(false);
   const setRestCompletedVisible = useStore((state) => state.setRestCompletedVisible);
   const insets = useSafeAreaInsets();
-
+  useEffect(() => { 
+    console.log(workoutDetails)
+  }, [workoutDetails]);
 
   return (
     <Modal

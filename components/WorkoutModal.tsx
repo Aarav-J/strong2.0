@@ -15,10 +15,10 @@ import AddExerciseModal from "./AddExerciseModal";
 type Props = {
   visible: boolean;
   onClose: () => void;
-  workoutName: string;
+//   workoutName: string;
 };
 
-export default function WorkoutModal({ visible, onClose, workoutName }: Props) {
+export default function WorkoutModal({ visible, onClose, }: Props) {
   const workoutDetails = useStore((state) => state.workoutDetails);
   const numpadVisible = useStore((state) => state.numpadVisible);
   const restCompletedVisible = useStore((state) => state.restCompletedVisible);
@@ -40,7 +40,7 @@ export default function WorkoutModal({ visible, onClose, workoutName }: Props) {
           <Pressable onPress={onClose} style={styles.closeButton}>
             <Ionicons name="chevron-down" size={28} color="white" />
           </Pressable>
-          <Text style={styles.modalTitle}>{workoutName}</Text>
+          <Text style={styles.modalTitle}>{workoutDetails?.name}</Text>
           <View style={styles.placeholder} />
         </View>
 
@@ -53,10 +53,10 @@ export default function WorkoutModal({ visible, onClose, workoutName }: Props) {
           showsVerticalScrollIndicator={false}
         >
           <Header 
-            title={workoutName}
+            title={workoutDetails?.name || "Workout"}
           />
           <View style={styles.exerciseContainer}>
-            {workoutDetails.map((exercise, index) => (
+            {workoutDetails?.exercises.map((exercise, index) => (
               <Exercise key={index} exerciseDetails={exercise}/>
             ))}
             <View style={styles.addExerciseContainer}>

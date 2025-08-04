@@ -21,15 +21,15 @@ Notifications.setNotificationHandler({
 export default function Index() {
   const [workoutModalVisible, setWorkoutModalVisible] = useState(false);
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
-  const workoutName = "Midday Workout";
   const selectedInfoExercise = useStore((state) => state.selectedInfoExercise);
   const setSelectedInfoExercise = useStore((state) => state.setSelectedInfoExercise);
   const setExerciseData = useStore((state) => state.setExerciseData);
   const exerciseData = useStore((state) => state.exerciseData);
-  const startWorkout = () => {
-    setIsWorkoutActive(true);
-    setWorkoutModalVisible(true);
-  };
+  const startWorkout = useStore((state) => state.startWorkout);
+  // const startWorkout = () => {
+  //   setIsWorkoutActive(true);
+  //   setWorkoutModalVisible(true);
+  // };
 
   const endWorkout = () => {
     setIsWorkoutActive(false);
@@ -78,7 +78,11 @@ export default function Index() {
         <View style={styles.contentBox}>
           <Text style={styles.subtitle}>Quick Start</Text>
           {!isWorkoutActive && (
-            <Pressable style={styles.startButton} onPress={startWorkout}>
+            <Pressable style={styles.startButton} onPress={() => { 
+              startWorkout("midday workout");
+              setWorkoutModalVisible(true);
+               setIsWorkoutActive(true);
+            }}>
               <Text style={styles.startButtonText}>Start Workout</Text>
             </Pressable>
           )}
@@ -122,7 +126,6 @@ export default function Index() {
 
       {/* Workout Tab */}
       <WorkoutTab
-        workoutName={workoutName}
         onPress={() => setWorkoutModalVisible(true)}
         isActive={isWorkoutActive}
       />
@@ -131,7 +134,6 @@ export default function Index() {
       <WorkoutModal
         visible={workoutModalVisible}
         onClose={() => setWorkoutModalVisible(false)}
-        workoutName={workoutName}
       />
        {/* {selectedInfoExercise && <ExerciseInfo exerciseId={selectedInfoExercise} setSelectedInfoExercise={setSelectedInfoExercise} />} */}
     </View>

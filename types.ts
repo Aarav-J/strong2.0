@@ -2,10 +2,15 @@ export type ExerciseSet =
     | { key: number; type: string; rep: number; weight: number; completed: boolean, rest: {duration: number, completed: boolean} }
     // | { key: number; type: "rest"; duration: number; completed: boolean };
 
+export type Workout = { 
+    key: number; 
+    name: string; 
+    templateId?: number; 
+    exercises: ExerciseDetail[]; 
+}
 export type ExerciseDetail = {
     key: number;
     workoutIndex: number; // Index of the workout in the list
-    templateId?: number; 
     name: string;
     sets: ExerciseSet[];
 };

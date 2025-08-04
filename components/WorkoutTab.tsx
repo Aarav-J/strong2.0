@@ -1,15 +1,16 @@
+import { useStore } from '@/store';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ElapsedTime from './ElapsedTime';
 type Props = {
-  workoutName: string;
+//   workoutName: string;
   onPress: () => void;
   isActive: boolean;
 };
 
-export default function WorkoutTab({ workoutName, onPress, isActive }: Props) {
+export default function WorkoutTab({ onPress, isActive }: Props) {
   const insets = useSafeAreaInsets();
-
+  const workoutDetails = useStore((state) => state.workoutDetails);
   if (!isActive) return null;
 
   return (
@@ -17,7 +18,7 @@ export default function WorkoutTab({ workoutName, onPress, isActive }: Props) {
       <Pressable style={styles.tab} onPress={onPress}>
         <View style={styles.tabContent}>
           {/* <View style={styles.indicator} /> */}
-          <Text style={styles.workoutName}>{workoutName}</Text>
+          <Text style={styles.workoutName}>{workoutDetails?.name || "midday workout"}</Text>
           {/* <Ionicons name="chevron-up" size={20} color="white" /> */}
           <View style={{flexDirection: "row", alignItems: "center"}}>
             <ElapsedTime textStyles={styles.elapsedTime} />

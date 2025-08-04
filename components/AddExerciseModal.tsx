@@ -20,7 +20,7 @@ const AddExerciseModal = ({addExerciseModalVisible, setAddExerciseModalVisible}:
     const [isActive, setIsActive] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterChoices, setFilterChoices] = useState<string[][]>([[], []]);   
-    const addWorkout = useStore((state) => state.addWorkout);
+    const addWorkout = useStore((state) => state.addExercise);
     const [chosenExercises, setChosenExercises] = useState<number[]>([]);
 
     const loadCsv = async () => {

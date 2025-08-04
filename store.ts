@@ -1,15 +1,15 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
-import { Exercise, ExerciseDetail, Template } from './types';
+import { Exercise, Template, Workout } from './types';
 
 type StoreState = {
     activeExercise: number; 
     activeSet: number[]; 
     chosenEditKey: number[], 
-    workoutDetails: ExerciseDetail[];
+    workoutDetails: Workout | null;
     setNext: () => void; 
     setActiveSet: (newActiveSet: number[]) => void; 
-    setWorkoutDetails: (newWorkoutDetails: ExerciseDetail[]) => void; 
+    setWorkoutDetails: (newWorkoutDetails: Workout) => void; 
     setCompletedElement: (key: number[]) => void; 
     addSet: (key: number) => void; 
     numpadVisible: boolean;
@@ -25,17 +25,17 @@ type StoreState = {
     resetRestTimer: (parentKey: number, setKey: number) => void;
     selectedInfoExercise: number | null; 
     setSelectedInfoExercise: (id: number | null) => void;
-    addWorkout: (newWorkout: Exercise) => void;
+    addExercise: (newWorkout: Exercise) => void;
     templates: Template[];
     setTemplates: (newTemplates: Template[]) => void;
     setActiveExercise: () => void;
     exerciseData: Exercise[];
     setExerciseData: (newExerciseData: Exercise[]) => void;
+    startWorkout: (name: string, templateId?: number) => void; 
 };
 
 export const useStore = create<StoreState>((set, get) => ({
-    workoutDetails: [
-    ],
+    workoutDetails: null,
     templates: [
         {
             key: 0, 
@@ -68,11 +68,42 @@ export const useStore = create<StoreState>((set, get) => ({
             ]
         }
     ],
+    startWorkout: (name: string, templateId?: number) => set((state) => {
+        if(!templateId) { 
+            return {workoutDetails: { 
+                key: 0, 
+                name: name, 
+                exercises: []
+            }};
+        } else { 
+            const template = state.templates.find(t => t.key === templateId);
+            if(!template) return state; // If template not found, return current state
+            const exercises = template.exercises.map((exercise, index) => ({
+                key: index,
+                workoutIndex: exercise.exerciseId,
+                name: state.exerciseData[exercise.exerciseId]?.name || "Unknown Exercise",
+                sets: Array.from({ length: exercise.sets }, (_, setIndex) => ({
+                    key: setIndex,
+                    type: "set",
+                    rep: 0,
+                    weight: 0,
+                    completed: false,
+                    rest: { duration: 120, completed: false }
+                }))
+            }));
+            
+            return {workoutDetails: { 
+                key: 0, 
+                name: name, 
+                exercises: exercises
+            }};
+        }
+    }),
     setTemplates: (newTemplates: Template[]) => set((state) => ({ templates: newTemplates })),
     exerciseData: [], 
     setExerciseData: (newExerciseData: Exercise[]) => set((state) => ({ exerciseData: newExerciseData })),
 
-    setWorkoutDetails: (newWorkoutDetails) =>
+    setWorkoutDetails: (newWorkoutDetails: Workout) =>
         set((state) => ({ workoutDetails: newWorkoutDetails })), 
     activeExercise: 0, 
     setActiveExercise: () => set((state) => ({activeExercise: state.activeExercise})),
@@ -82,8 +113,8 @@ export const useStore = create<StoreState>((set, get) => ({
     setNext: () => set((state) => {
         const parentKey = state.activeSet[0];
         const key = state.activeSet[1]; 
-        const workoutLength = state.workoutDetails.length
-        const setLength = state.workoutDetails[parentKey].sets.length
+        const workoutLength = state.workoutDetails?.exercises.length || 0;
+        const setLength = state.workoutDetails?.exercises[parentKey]?.sets.length || 0;
 
         if(key + 1 >= setLength) { 
             if(parentKey + 1 >= workoutLength) { 
@@ -97,43 +128,47 @@ export const useStore = create<StoreState>((set, get) => ({
         // Add your logic here using parentKey if needed
         // return {};
     }),
-    addWorkout: (newWorkout: Exercise) => set((state) => { 
-        let newWorkoutDetails = [...state.workoutDetails];
-        newWorkoutDetails.push({ 
-            key: newWorkoutDetails.length, 
-            workoutIndex: newWorkout.id,
-            name: newWorkout.name,
+    addExercise: (newExercise: Exercise) => set((state) => { 
+        if(!state.workoutDetails) return state; // Ensure workoutDetails is not null
+        let newWorkoutDetails = {...state.workoutDetails};
+        // newWorkoutDetails.exercises
+        newWorkoutDetails.exercises.push({ 
+            key: newWorkoutDetails.exercises.length, 
+            workoutIndex: newExercise.id,
+            name: newExercise.name,
             sets: [ 
                 
             ]
-
         })
         return {workoutDetails: newWorkoutDetails};
+        
     }),
     setActiveSet: (newActiveSet) => set((state) => ({activeSet: newActiveSet})),
     chosenEditKey: [0,0,0], 
     setChosenEditKey: () => set((state) => ({chosenEditKey: state.chosenEditKey})),
     setCompletedElement: (key: number[]) => set((state) => { 
-        let tempWorkoutDetails = [...state.workoutDetails]
+        if(!state.workoutDetails) return state; // Ensure workoutDetails is not null
+        let tempWorkoutDetails = {...state.workoutDetails}; 
         // let tempSets = [...state.workoutDetails[key[0]].sets]
         if(key[2] == 1) { 
-            tempWorkoutDetails[key[0]].sets[key[1]].rest.completed = !tempWorkoutDetails[key[0]].sets[key[1]].rest.completed
+            tempWorkoutDetails.exercises[key[0]].sets[key[1]].rest.completed = !tempWorkoutDetails.exercises[key[0]].sets[key[1]].rest.completed
         } else { 
-            tempWorkoutDetails[key[0]].sets[key[1]].completed = !tempWorkoutDetails[key[0]].sets[key[1]].completed
+            tempWorkoutDetails.exercises[key[0]].sets[key[1]].completed = !tempWorkoutDetails.exercises[key[0]].sets[key[1]].completed
         }
         
         return {workoutDetails: tempWorkoutDetails}
     }),
     addSet: (key: number) => set((state) => { 
-        let tempDetails = [...state.workoutDetails]
-        
-        const maxKey = state.workoutDetails[key].sets.length 
+        if(!state.workoutDetails) return state; // Ensure workoutDetails is not null
+        let tempDetails = {...state.workoutDetails}; 
+
+        const maxKey = state.workoutDetails.exercises[key].sets.length 
         if(maxKey === 0) {
-            tempDetails[key].sets.push({key: 0, type: "set", rep: 0, weight: 0, completed: false, rest: {duration: 120, completed: false}})
+            tempDetails.exercises[key].sets.push({key: 0, type: "set", rep: 0, weight: 0, completed: false, rest: {duration: 120, completed: false}})
         } else { 
-            const lastSet = tempDetails[key].sets[maxKey-1]
+            const lastSet = tempDetails.exercises[key].sets[maxKey-1]
             // const newSet = {key: maxKey, type: "set" as const, rep: lastSet.rep, weight: lastSet.weight, completed: false, rest: {duration: 120, completed: false}}
-            tempDetails[key].sets.push({key: maxKey, type: "set" as const, rep: lastSet.rep, weight: lastSet.weight, completed: false, rest: {duration: 120, completed: false}})
+            tempDetails.exercises[key].sets.push({key: maxKey, type: "set" as const, rep: lastSet.rep, weight: lastSet.weight, completed: false, rest: {duration: 120, completed: false}})
         }
         
         return {workoutDetails: tempDetails}
@@ -144,18 +179,19 @@ export const useStore = create<StoreState>((set, get) => ({
     setActiveInputId: (id: string | null) => set((state) => ({activeInputId: id})),
     updateInputValue: (inputId, value) => 
         set((state) => { 
+            if (!state.workoutDetails) return state; // Ensure workoutDetails is not null
             const parts = inputId.split('-'); 
             if(parts.length === 4 && parts[0] === 'set') { 
                 const parentKey = parseInt(parts[1]);
                 const setKey = parseInt(parts[2]);
                 const field = parts[3];
 
-                const newWorkoutDetails = [...state.workoutDetails];
-                if(newWorkoutDetails[parentKey]?.sets[setKey]) { 
+                const newWorkoutDetails = {...state.workoutDetails};
+                if(newWorkoutDetails.exercises[parentKey]?.sets[setKey]) { 
                     if(field === 'rep') { 
-                        newWorkoutDetails[parentKey].sets[setKey].rep = parseInt(value) || 0;
+                        newWorkoutDetails.exercises[parentKey].sets[setKey].rep = parseInt(value) || 0;
                     } else if (field === 'weight') { 
-                        newWorkoutDetails[parentKey].sets[setKey].weight = parseFloat(value) || 0;
+                        newWorkoutDetails.exercises[parentKey].sets[setKey].weight = parseFloat(value) || 0;
                     }
                 }
                 return {workoutDetails: newWorkoutDetails}
@@ -173,7 +209,7 @@ export const useStore = create<StoreState>((set, get) => ({
         const setKey = parseInt(parts[2]);
         const field = parts[3];
         
-        const currentSet = state.workoutDetails[parentKey]?.sets[setKey];
+        const currentSet = state.workoutDetails?.exercises[parentKey]?.sets[setKey];
         if (!currentSet) return null;
 
         const currentValue = field === 'rep' ? currentSet.rep.toString() : currentSet.weight.toString();
@@ -201,7 +237,7 @@ export const useStore = create<StoreState>((set, get) => ({
         const setKey = parseInt(parts[2]);
         const field = parts[3];
         
-        const currentSet = state.workoutDetails[parentKey]?.sets[setKey];
+        const currentSet = state.workoutDetails?.exercises[parentKey]?.sets[setKey];
         if (!currentSet) return null;
 
         const currentValue = field === 'rep' ? currentSet.rep.toString() : currentSet.weight.toString();
@@ -233,11 +269,12 @@ export const useStore = create<StoreState>((set, get) => ({
     setRestCompletedVisible: (val: boolean) => set((state) => ({restCompletedVisible: val})),
     resetRestTimer: (parentKey, setKey) => 
         set((state) => {
-        const newWorkoutDetails = [...state.workoutDetails];
-        if (newWorkoutDetails[parentKey]?.sets[setKey]) {
+        if(!state.workoutDetails) return state; // Ensure workoutDetails is not null
+        const newWorkoutDetails = {...state.workoutDetails};
+        if (newWorkoutDetails.exercises[parentKey]?.sets[setKey]) {
             // Reset rest completion status
-            newWorkoutDetails[parentKey].sets[setKey].rest.completed = false;
-            
+            newWorkoutDetails.exercises[parentKey].sets[setKey].rest.completed = false;
+
             // Clear any stored timer data
             const storageKey = `restTimerEnd-${parentKey}-${setKey}`;
             AsyncStorage.removeItem(storageKey);

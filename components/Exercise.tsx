@@ -1,7 +1,14 @@
 import { useStore } from '@/store';
 import { ExerciseDetail } from '@/types';
-import { FontAwesome } from '@expo/vector-icons';
-import { StyleSheet, Text, View } from 'react-native';
+import { Feather, FontAwesome } from '@expo/vector-icons';
+import { useEffect, useState } from 'react';
+import {
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
+} from 'react-native';
 import Button from './Button';
 import Rest from './Rest';
 import Set from './Set';
@@ -11,13 +18,81 @@ type Props = {
 };
 
 export default function Exercise({ exerciseDetails }: Props) {
-    const name = exerciseDetails.name
-    const key = exerciseDetails.key
-    const addSet = useStore((state) => state.addSet)
+    const key = exerciseDetails.key;
+    const addSet = useStore((state) => state.addSet);
+    const updateExerciseName = useStore((state) => state.updateExerciseName);
+    
+    const [isEditing, setIsEditing] = useState(false);
+    const [exerciseName, setExerciseName] = useState(exerciseDetails.name);
+    const [isSaving, setIsSaving] = useState(false); // Track if we're saving to prevent cancel on blur
+    
+    // Update local state when the exercise name changes from props
+    useEffect(() => {
+        setExerciseName(exerciseDetails.name);
+    }, [exerciseDetails.name]);
+    
+    const handleSaveName = () => {
+        setIsSaving(true); // Mark that we're saving to prevent cancel
+        if (exerciseName.trim()) {
+            updateExerciseName(key, exerciseName);
+        } else {
+            // If empty, reset to the original name
+            setExerciseName(exerciseDetails.name);
+        }
+        setIsEditing(false);
+    };
+    
+    const handleCancel = () => {
+        if (!isSaving) { // Only cancel if we're not already saving
+            setExerciseName(exerciseDetails.name);
+            setIsEditing(false);
+        }
+        setIsSaving(false); // Reset the saving flag
+    };
+    
     return (
         <View style={styles.exerciseContainer}>
-            <View style={{paddingHorizontal: 20}}>
-                <Text style={styles.exerciseName}>{name}</Text>
+            <View style={styles.nameContainer}>
+                {isEditing ? (
+                    <View style={styles.editNameContainer}>
+                        <TextInput
+                            style={styles.nameInput}
+                            value={exerciseName}
+                            onChangeText={setExerciseName}
+                            autoFocus
+                            selectionColor="#34A6FB"
+                            placeholderTextColor="#888"
+                            placeholder="Exercise Name"
+                            returnKeyType="done"
+                            onSubmitEditing={handleSaveName}
+                            onBlur={handleCancel}
+                            blurOnSubmit={false}
+                            maxLength={30} // Limit the input length
+                        />
+                        <View style={styles.buttonsContainer}>
+                            <TouchableOpacity 
+                                style={styles.iconButton} 
+                                onPress={handleCancel}
+                            >
+                                <Feather name="x" size={20} color="#FF3B30" />
+                            </TouchableOpacity>
+                            <TouchableOpacity 
+                                style={styles.iconButton} 
+                                onPress={handleSaveName}
+                            >
+                                <Feather name="check" size={20} color="#34A6FB" />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                ) : (
+                    <TouchableOpacity 
+                        style={styles.nameDisplay}
+                        onPress={() => setIsEditing(true)}
+                    >
+                        <Text style={styles.exerciseName}>{exerciseDetails.name}</Text>
+                        <Feather name="edit-2" size={16} color="#34A6FB" />
+                    </TouchableOpacity>
+                )}
             </View>
             <View style={styles.headerCells}>
                 <View style={[styles.headerTextContainer, {width: "10%", justifyContent: "flex-start"}]}><Text style={styles.headerText}>Set</Text></View>
@@ -57,15 +132,44 @@ export default function Exercise({ exerciseDetails }: Props) {
 const styles = StyleSheet.create({ 
     exerciseContainer: { 
         flexDirection: "column",
-        width: "100%", 
-    
-        // backgroundColor: "red",
-
+        width: "100%",
+    },
+    nameContainer: {
+        paddingHorizontal: 20,
+        marginBottom: 5,
+    },
+    nameDisplay: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        paddingVertical: 5,
+    },
+    editNameContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingVertical: 5,
+    },
+    nameInput: {
+        fontSize: 20,
+        fontWeight: "bold",
+        color: "#34A6FB",
+        flex: 1,
+        paddingVertical: 5,
+        borderBottomWidth: 1,
+        borderBottomColor: "#34A6FB",
+        marginRight: 10,
+    },
+    buttonsContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    iconButton: {
+        padding: 5,
+        marginLeft: 5,
     },
     setContainer: { 
         flexDirection: "column",
-        // gap: 8,
-        // backgroundColor: "red",
     },
     addSetContainer: { 
         paddingHorizontal: 20, 
@@ -78,9 +182,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         paddingVertical: 16,
-        // alignItems: "flex-end",
         paddingHorizontal: 25,
-        // backgroundColor: "#222",
         borderRadius: 8,
         marginBottom: 8,
         color: "white",
@@ -99,6 +201,7 @@ const styles = StyleSheet.create({
     exerciseName: { 
         fontSize: 20, 
         fontWeight: "bold",
-        color: "#34A6FB"
+        color: "#34A6FB",
+        marginRight: 10,
     }
 })

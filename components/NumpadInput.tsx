@@ -12,6 +12,8 @@ type Props = {
 export default function NumpadInput({ value, onChangeText, inputId }: Props) {
   const inputRef = useRef<TextInput>(null);
   const [selection, setSelection] = useState({ start: 0, end: value.length });
+  const [hasFocused, setHasFocused] = useState(false);
+  const [localValue, setLocalValue] = useState(value);
   
   const numpadVisible = useStore((state) => state.numpadVisible);
   const setNumpadVisible = useStore((state) => state.setNumpadVisible);
@@ -23,19 +25,36 @@ export default function NumpadInput({ value, onChangeText, inputId }: Props) {
   const workoutDetails = useStore((state) => state.workoutDetails);
   const isActive = activeInputId === inputId;
 
+  // Sync local value with prop value
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
   // Only sync FROM store TO local when store selection changes and it's different
   useEffect(() => {
     if (isActive && currentSelection && 
         (currentSelection.start !== selection.start || currentSelection.end !== selection.end)) {
       setSelection(currentSelection);
     }
-  }, [currentSelection, isActive]); // Remove selection from dependencies
+  }, [currentSelection, isActive]);
+
+  // If value changes externally, update selection to end
+  useEffect(() => {
+    if (isActive && hasFocused) {
+      setSelection({ start: localValue.length, end: localValue.length });
+    }
+  }, [localValue, isActive, hasFocused]);
 
   useEffect(() => {
     if (activeInputId !== inputId) {
+      // Only change to "0" if completely empty on blur
+      if (localValue === '') {
+        onChangeText('0');
+      }
       inputRef.current?.blur();
+      setHasFocused(false);
     }
-  }, [activeInputId, inputId]);
+  }, [activeInputId, inputId, localValue, onChangeText]);
 
   // Only update store when user manually changes selection (not from numpad)
   const updateStoreSelection = (newSelection: { start: number, end: number }) => {
@@ -47,24 +66,35 @@ export default function NumpadInput({ value, onChangeText, inputId }: Props) {
   return (
     <TextInput
       ref={inputRef}
-      value={value}
+      value={localValue}
       selection={isActive ? selection : undefined}
       onSelectionChange={({ nativeEvent: { selection } }) => {
         if (isActive) {
-
           setSelection(selection);
-          // Update store selection directly here instead of in useEffect
           updateStoreSelection(selection);
-          console.log(selection)
         }
+      }}
+      onChangeText={(text) => {
+        setLocalValue(text);
+        onChangeText(text);
       }}
       onFocus={() => {
         setActiveInputId(inputId);
         setNumpadVisible(true);
-        const pos = value.length;
-        const newSelection = { start: 0, end: value.length };
-        setSelection(newSelection);
-        updateStoreSelection(newSelection);
+        // Only select all on first focus or if value is "0"
+        if (!hasFocused || localValue === "0") {
+          setSelection({ start: 0, end: localValue.length });
+          updateStoreSelection({ start: 0, end: localValue.length });
+        }
+        setHasFocused(true);
+      }}
+      onBlur={() => {
+        // Only convert empty value to "0" on blur
+        if (localValue === '' || localValue === null) {
+          setLocalValue('0');
+          onChangeText('0');
+        }
+        setHasFocused(false);
       }}
       showSoftInputOnFocus={false}
       style={[

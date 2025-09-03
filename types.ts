@@ -7,6 +7,16 @@ export type Workout = {
     name: string; 
     templateId?: number; 
     exercises: ExerciseDetail[]; 
+    startTime?: number;
+}
+
+export type CompletedWorkout = {
+    id: string;
+    name: string;
+    date: string;
+    duration: number; // in milliseconds
+    exercises: ExerciseDetail[];
+    templateId?: number;
 }
 
 export type ExerciseDetail = {

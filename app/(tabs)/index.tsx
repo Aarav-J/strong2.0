@@ -30,6 +30,8 @@ export default function Index() {
   const setExerciseData = useStore((state) => state.setExerciseData);
   const exerciseData = useStore((state) => state.exerciseData);
   const startWorkout = useStore((state) => state.startWorkout);
+  const loadWorkoutHistory = useStore((state) => state.loadWorkoutHistory);
+  const workoutDetails = useStore((state) => state.workoutDetails);
   // const startWorkout = () => {
   //   setIsWorkoutActive(true);
   //   setWorkoutModalVisible(true);
@@ -51,6 +53,9 @@ export default function Index() {
         console.error("Error fetching exercise data:", error);
       }
       
+      // Load workout history from AsyncStorage
+      loadWorkoutHistory();
+      
       AsyncStorage.setItem("startDate", new Date().toISOString());
       registerForPushNotificationsAsync();
 
@@ -69,16 +74,20 @@ export default function Index() {
       return () => {
         notificationListener.remove();
         responseListener.remove();
-      
-    }
-  }, []);
+      }
+    }, []);
+    
+    // Update workout active state based on workoutDetails
+    useEffect(() => {
+      setIsWorkoutActive(!!workoutDetails);
+    }, [workoutDetails]);
   const templates = useStore((state) => state.templates);
 
   return (
     <View style={styles.container}>
       {/* Placeholder content */}
       <View style={styles.content}>
-        <Text style={styles.title}>AaravStrong</Text>
+        <Text style={styles.title}>Stronger</Text>
         <View style={styles.contentBox}>
           <Text style={styles.subtitle}>Quick Start</Text>
           {!isWorkoutActive && (
